@@ -21,6 +21,7 @@ export class PrivateChatComponent implements OnInit {
   chatForm: FormGroup;
   displayMessage = [];
   currentUser: any;
+
   ngOnInit() {
     this.chatForm = new FormGroup({
       message: new FormControl()
@@ -28,21 +29,24 @@ export class PrivateChatComponent implements OnInit {
 
     this.chatService.currentMessage.subscribe(params => {
       this.userData = params
+      console.log(this.userData)
       this.receivername = this.userData.name
       
     })
+
     this.chatService.newMessages.subscribe((data:any)=>{
       this.PrivateMessages=JSON.parse(data) ;
       console.log(this.PrivateMessages,"Messages Received");
     });
+    
     console.log(this.PrivateMessages)
     this.chatService.getPrivateMessage().subscribe(data => {
-      let tempMessage = JSON.parse(data)
-      console.log(tempMessage,this.receivername)
-      if(tempMessage.receiverName == this.userData.senderName){
-        this.PrivateMessages.push(JSON.parse(data));
+      let tempMessage = JSON.parse(data);
+      let name = this.chatService.fetchdetails.receiverName;
+       if(tempMessage.senderName == name){
+        this.PrivateMessages.push(tempMessage);    
       }
-      
+        
     });
   }
 

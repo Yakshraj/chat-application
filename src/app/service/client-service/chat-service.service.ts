@@ -36,6 +36,7 @@ export class ChatServiceService {
   }
   public setDetails(details) {
     console.log(details)
+
     this.fetchdetails ={senderName:this.username,receiverName:details.name}
     this.fetchChatHistory()
     this.messageSource.next(details);
@@ -59,7 +60,7 @@ export class ChatServiceService {
     this.socket.emit('send-receiver-details',JSON.stringify(this.fetchdetails));
     this.socket.on('fetch-chat-history',(data)=>{
       this.privateMessages.next(data)
-      console.log(this.privateMessages,"Chat History Fetched");
+     
     });
     
   }
