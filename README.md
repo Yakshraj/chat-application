@@ -28,9 +28,13 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 # angular-chat-application
 
 
-# MongoDB
+## MongoDB
 You required to install mongodb which has two collections named with users and another with name ChatMessages.
+
 Run the Following queries :-
+
 1.) use local
+
 2.) db.users.insertOne({"name":"user1", "role":"employee"}) // Add users with role 'employee' 
+
 3.) db.users.insertOne({"agent1":"user1", "role":"admin"}) // Add agents with role 'admin'
