@@ -110,19 +110,18 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', (index) => {
         socket.disconnect(socket.id);
-
         for (i = 0; i < activeClient.length; i++) {
             if (activeClient[i].id == socket.id) {
                 this.temp = activeClient[i].name
                 activeClient.splice(i, 1);
             }
         }
+        console.log("deleted user",this.temp)
         io.emit('delete-map', this.temp)
         io.emit('get-clients', JSON.stringify(activeClient));
-    })
+    });
 
     socket.on('private-message', (data) => {
-        
         let privateDetails = JSON.parse(data);
         db.collection('ChatMessages').insertOne(privateDetails);
         if(privateDetails.receiverName == 'Agent'){
@@ -131,7 +130,7 @@ io.on('connection', (socket) => {
                 botMessage = {senderName: privateDetails.receiverName, receiverName: privateDetails.senderName, msg:brain[privateDetails.msg]}
                 if(privateDetails.msg == 'connect to admin'){
                     if(freeAdmins.length>0){
-                        
+                        io.sockets.in(freeAdmins[0].name).emit('connect-to-admin',privateDetails.senderName)
                     }
                 }
                 
@@ -142,29 +141,11 @@ io.on('connection', (socket) => {
             io.sockets.in(privateDetails.senderName).emit('send-private-message',JSON.stringify(botMessage));
             db.collection('ChatMessages').insertOne(botMessage);
          }
-         else{
-            
+         else{            
             io.sockets.in(privateDetails.receiverName).emit('send-private-message', data);
-
          }
+    });
 
-
-         
-        // var docx = sentiment.analyze(privateDetails.msg).score;
-        // console.log(docx)
-        // if (docx < 0) {
-        //     emotion = 'Negative'
-        // }
-        // else if (docx = 0) {
-        //     emotion = 'Neutral'
-        // }
-        // else {
-        //     emotion = 'Positive'
-        // }
-        // privateDetails.emotion = emotion;
-        // console.log(privateDetails.emotion)
-
-    })
     socket.on('send-receiver-details',(fetchDetails)=>{
         console.log("Call received")
         let FetchDetails =  JSON.parse(fetchDetails)
@@ -176,5 +157,9 @@ io.on('connection', (socket) => {
             io.sockets.in(socket.id).emit('fetch-chat-history', JSON.stringify(chatHistory));
         });
      })
+
+
+
+
 });
 

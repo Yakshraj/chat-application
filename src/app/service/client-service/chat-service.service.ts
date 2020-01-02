@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as io from 'socket.io-client';
-import { Observable,  Subject } from 'rxjs'
+import { Observable, Subject } from 'rxjs'
 
 @Injectable({
   providedIn: 'root'
@@ -12,14 +12,14 @@ export class ChatServiceService {
   activeClients = [];
   username: string;
   socketId: any;
-  newActiveClients=[];
-  allEmployees=[];
-  checkClient=[];
-  userRole:string;
-  
+  newActiveClients = [];
+  allEmployees = [];
+  checkClient = [];
+  userRole: string;
+
   checkValue = new Subject();
   checkCurrentValue = this.checkValue.asObservable();
-  fetchdetails:any;
+  fetchdetails: any;
 
   private messageNotification = new Subject();
   currentNotification = this.messageNotification.asObservable();
@@ -28,7 +28,7 @@ export class ChatServiceService {
   currentMessage = this.messageSource.asObservable();
 
   private privateMessages = new Subject();
-  newMessages= this.privateMessages.asObservable();
+  newMessages = this.privateMessages.asObservable();
 
 
   constructor() {
@@ -37,7 +37,7 @@ export class ChatServiceService {
   public setDetails(details) {
     console.log(details)
 
-    this.fetchdetails ={senderName:this.username,receiverName:details.name}
+    this.fetchdetails = { senderName: this.username, receiverName: details.name }
     this.fetchChatHistory()
     this.messageSource.next(details);
   }
@@ -55,14 +55,14 @@ export class ChatServiceService {
     });
   }
 
-  fetchChatHistory(){    
+  fetchChatHistory() {
     console.log("In fetch Chat History")
-    this.socket.emit('send-receiver-details',JSON.stringify(this.fetchdetails));
-    this.socket.on('fetch-chat-history',(data)=>{
+    this.socket.emit('send-receiver-details', JSON.stringify(this.fetchdetails));
+    this.socket.on('fetch-chat-history', (data) => {
       this.privateMessages.next(data)
-     
+
     });
-    
+
   }
   getPrivateMessage() {
     return Observable.create((observer) => {
@@ -74,18 +74,16 @@ export class ChatServiceService {
 
 
 
-  joinUser(username){
+  joinUser(username) {
     this.socket.emit('join', username);
   }
 
   getActiveClients(): Observable<any> {
     this.socket.emit('get-clients');
-
     return Observable.create((observer) => {
       this.socket.on('get-clients', (data: any) => {
-
         this.activeClients = JSON.parse(data);
-        this.activeClients.push({name:"Agent",id:"agentId",count:0})
+        this.activeClients.push({ name: "Agent", id: "agentId", count: 0 })
         observer.next(data);
       })
     });
@@ -95,71 +93,80 @@ export class ChatServiceService {
     this.socket.emit('private-message', JSON.stringify(details))
   }
 
-  deleteMap(): Observable<any>{
+  deleteDisconnected(): Observable<any> {
     return Observable.create((observer) => {
       this.socket.on('delete-map', (data: any) => {
         observer.next(data);
 
       })
     });
-}
+  }
 
-getAllUsers(callback){
-   this.socket.emit('get-all-users');
-    this.socket.on('received-all-users',(allEmployees) => {
+  getAllUsers(callback) {
+    this.socket.emit('get-all-users');
+    this.socket.on('received-all-users', (allEmployees) => {
       callback(allEmployees)
     });
-  
-}
 
-checkUser(username,callback){
-  this.username = username;
-  let duplicateFlag = false;
-  this.getActiveClients().subscribe(activeClients => {
-    this.checkClient = JSON.parse(activeClients);
-    console.log(this.checkClient)
-    for(let i=0;i<this.checkClient.length;i++){
-      if(this.checkClient[i].name == this.username){
+  }
+
+  checkUser(username, callback) {
+    this.username = username;
+    let duplicateFlag = false;
+    this.getActiveClients().subscribe(activeClients => {
+      this.checkClient = JSON.parse(activeClients);
+      console.log(this.checkClient)
+      for (let i = 0; i < this.checkClient.length; i++) {
+        if (this.checkClient[i].name == this.username) {
           duplicateFlag = true;
           callback("duplicate");
           break;
+        }
       }
-    }
-    if(duplicateFlag == false){
-      this.socket.emit('check-user',username);
-  
-    this.socket.on('success',()=> {
-      this.joinUser(username)
-      this.userRole="employee";
-      callback("success")
-    });
-    this.socket.on('failure',()=> {
-      callback("failure");
-    });
-    this.socket.on('admin-success',()=> {
-      this.joinUser(username)
-      this.userRole="admin"
-      callback("admin")
-    })
-    }
-  });
-}
+      if (duplicateFlag == false) {
+        this.socket.emit('check-user', username);
 
-addNewUSer(name,callback){
-    this.socket.emit('new-user',name);
-    this.socket.on('add-new-user',()=> {
-        callback(true)
+        this.socket.on('success', () => {
+          this.joinUser(username)
+          this.userRole = "employee";
+          callback("success")
+        });
+        this.socket.on('failure', () => {
+          callback("failure");
+        });
+        this.socket.on('admin-success', () => {
+          this.joinUser(username)
+          this.userRole = "admin"
+          callback("admin")
+        })
+      }
     });
-    this.socket.on('user-exist',()=> {
+  }
+
+  addNewUSer(name, callback) {
+    this.socket.emit('new-user', name);
+    this.socket.on('add-new-user', () => {
+      callback(true)
+    });
+    this.socket.on('user-exist', () => {
       callback(false);
     });
-}
+  }
 
-checkBoxValue(checked,name){
-  let userToggle = {checked:checked,name:name}
-  this.checkValue.next(userToggle)
-}
+  checkBoxValue(checked, name) {
+    let userToggle = { checked: checked, name: name }
+    this.checkValue.next(userToggle)
+  }
 
+  connectToadmin() : Observable<any>{
+      return Observable.create((observer)=>{
+        this.socket.on('connect-to-admin',(connectUser)=>{
+        observer.next(connectUser)
+      })
+    }) 
+  }
 
-
+  BusyAdmin(value:any){
+    console.log(value)
+  }
 }

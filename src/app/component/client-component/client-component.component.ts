@@ -24,21 +24,26 @@ export class ClientComponentComponent implements OnInit {
   dataArray = [];
   userRole: any;
   allEmployees = [];
-
+  
 
   constructor(private chatService: ChatServiceService) {
     this.userRole = this.chatService.userRole;
     this.username = this.chatService.username;
-
+    this.chatService.connectToadmin().subscribe(data=>{
+     let value=alert(data+ " Wants To Connect You")
+      this.chatService.BusyAdmin(value)
+    })
     if(this.userRole == 'employee'){
       this.activeClients.push({name:"Agent",id:"agentId",count:0})
     }
-    // else{
-    //   this.getActiveUsers();
-    // }
-    
-    // this.deleteDisconnected();
 
+    this.chatService.deleteDisconnected().subscribe(data=>{
+      for (let i = 0; i < this.activeClients.length; i++) {
+        if (this.activeClients[i].name == data) {
+          this.activeClients.splice(i,1)
+        }
+      }
+    })
   }
 
   ngOnInit() {
@@ -65,7 +70,7 @@ export class ClientComponentComponent implements OnInit {
       }
     });
 
-    this.chatService.deleteMap().subscribe();
+
   }
 
   defineRole(){

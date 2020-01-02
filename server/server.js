@@ -10,3 +10,16 @@ var sentiment = new Sentiment();
 mydocx.forEach(function(s){
 	console.log(sentiment.analyze(s));
 })
+        // var docx = sentiment.analyze(privateDetails.msg).score;
+        // console.log(docx)
+        // if (docx < 0) {
+        //     emotion = 'Negative'
+        // }
+        // else if (docx = 0) {
+        //     emotion = 'Neutral'
+        // }
+        // else {
+        //     emotion = 'Positive'
+        // }
+        // privateDetails.emotion = emotion;
+        // console.log(privateDetails.emotion)
