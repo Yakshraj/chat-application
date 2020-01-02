@@ -11,16 +11,15 @@ export class ChatServiceService {
   private socket;
   activeClients = [];
   username: string;
-  UserMap: Map<any, any>;
   socketId: any;
-  userDetail: any;
   newActiveClients=[];
   allEmployees=[];
   checkClient=[];
   userRole:string;
-
+  
   checkValue = new Subject();
   checkCurrentValue = this.checkValue.asObservable();
+  fetchdetails:any;
 
   private messageNotification = new Subject();
   currentNotification = this.messageNotification.asObservable();
@@ -28,11 +27,17 @@ export class ChatServiceService {
   private messageSource = new Subject();
   currentMessage = this.messageSource.asObservable();
 
+  private privateMessages = new Subject();
+  newMessages= this.privateMessages.asObservable();
+
+
   constructor() {
     this.socket = io.connect(this.url);
-    this.UserMap = new Map<any, any>();
   }
   public setDetails(details) {
+    console.log(details)
+    this.fetchdetails ={senderName:this.username,receiverName:details.name}
+    this.fetchChatHistory()
     this.messageSource.next(details);
   }
 
@@ -49,6 +54,15 @@ export class ChatServiceService {
     });
   }
 
+  fetchChatHistory(){    
+    console.log("In fetch Chat History")
+    this.socket.emit('send-receiver-details',JSON.stringify(this.fetchdetails));
+    this.socket.on('fetch-chat-history',(data)=>{
+      this.privateMessages.next(data)
+      console.log(this.privateMessages,"Chat History Fetched");
+    });
+    
+  }
   getPrivateMessage() {
     return Observable.create((observer) => {
       this.socket.on('send-private-message', (message: any) => {
@@ -57,11 +71,6 @@ export class ChatServiceService {
     });
   }
 
-  getOldmessages(receiver_name): any {
-    let storeArray = []
-    storeArray = this.UserMap.get(receiver_name)
-    return storeArray
-  }
 
 
   joinUser(username){
@@ -75,18 +84,7 @@ export class ChatServiceService {
       this.socket.on('get-clients', (data: any) => {
 
         this.activeClients = JSON.parse(data);
-        for (let i = 0; i < this.activeClients.length; i++) {
-          if (this.activeClients[i].name == this.username) {
-            this.socketId = this.activeClients[i].id;
-            this.activeClients.splice(i, 1);
-          }
-        }
-        for (let i = 0; i < this.activeClients.length; i++) {
-          if (!(this.UserMap.get(this.activeClients[i].name))) {
-            let newArray = [];
-            this.UserMap.set(this.activeClients[i].name, newArray)
-          }
-        }
+        this.activeClients.push({name:"Agent",id:"agentId",count:0})
         observer.next(data);
       })
     });
@@ -118,10 +116,12 @@ checkUser(username,callback){
   let duplicateFlag = false;
   this.getActiveClients().subscribe(activeClients => {
     this.checkClient = JSON.parse(activeClients);
+    console.log(this.checkClient)
     for(let i=0;i<this.checkClient.length;i++){
       if(this.checkClient[i].name == this.username){
           duplicateFlag = true;
           callback("duplicate");
+          break;
       }
     }
     if(duplicateFlag == false){

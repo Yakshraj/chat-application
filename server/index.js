@@ -1,8 +1,9 @@
 var mongo = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/users";
-
+var brain = require('./data.json')
 let express = require('express')
 let app = express();
+
 
 let http = require('http')
 let server = http.Server(app);
@@ -12,6 +13,9 @@ let io = socketIO(server);
 
 let activeClient = [];
 let allEmployees = [];
+let freeAdmins = [];
+
+
 var db;
 const port = process.env.PORT || 3001;
 let adminID;
@@ -36,6 +40,8 @@ io.on('connection', (socket) => {
             }
             else if (result.name == username) {
                 if (result.role == "admin") {
+                    freeAdmins.push({name:username,id:socket.id})
+                    console.log(freeAdmins)
                     io.sockets.in(socket.id).emit('admin-success');
                 }
                 else {
@@ -116,15 +122,34 @@ io.on('connection', (socket) => {
     })
 
     socket.on('private-message', (data) => {
-
+        
         let privateDetails = JSON.parse(data);
-        // if(privateDetails.receiverName == 'agent'){
+        db.collection('ChatMessages').insertOne(privateDetails);
+        if(privateDetails.receiverName == 'Agent'){
+            if(privateDetails.msg in brain)
+            {
+                botMessage = {senderName: privateDetails.receiverName, receiverName: privateDetails.senderName, msg:brain[privateDetails.msg]}
+                if(privateDetails.msg == 'connect to admin'){
+                    if(freeAdmins.length>0){
+                        
+                    }
+                }
+                
+            }
+            else{
+                botMessage = { senderName: privateDetails.receiverName, receiverName: privateDetails.senderName, msg:"Sorry Cannot Understand"}
+            }
+            io.sockets.in(privateDetails.senderName).emit('send-private-message',JSON.stringify(botMessage));
+            db.collection('ChatMessages').insertOne(botMessage);
+         }
+         else{
+            
+            io.sockets.in(privateDetails.receiverName).emit('send-private-message', data);
 
-        // }
-        var emotion = "";
-        io.sockets.in(privateDetails.receiverName).emit('send-private-message', data);
+         }
 
 
+         
         // var docx = sentiment.analyze(privateDetails.msg).score;
         // console.log(docx)
         // if (docx < 0) {
@@ -140,6 +165,16 @@ io.on('connection', (socket) => {
         // console.log(privateDetails.emotion)
 
     })
-
+    socket.on('send-receiver-details',(fetchDetails)=>{
+        console.log("Call received")
+        let FetchDetails =  JSON.parse(fetchDetails)
+        console.log(fetchDetails)
+        db.collection('ChatMessages').find( {$or:[{senderName:FetchDetails.senderName,receiverName:FetchDetails.receiverName},{senderName:FetchDetails.receiverName,receiverName:FetchDetails.senderName}]})
+        .toArray(function (error, result) {
+            let chatHistory = result;
+            console.log(result,"Chat History fetched");
+            io.sockets.in(socket.id).emit('fetch-chat-history', JSON.stringify(chatHistory));
+        });
+     })
 });
 

@@ -7,10 +7,8 @@ import { ClientComponentComponent } from './client-component/client-component.co
 import { HttpClientModule } from '@angular/common/http';
 import { PrivateChatComponent } from './private-chat/private-chat.component';
 import { RouterModule } from '@angular/router';
-import { AdminComponentComponent } from './admin-component/admin-component.component';
 import { LoginComponentComponent } from './login-component/login-component.component';
 import { RegistrationComponent } from './registration/registration.component';
-import { ChatBotComponent } from './chat-bot/chat-bot.component';
 
 
 
@@ -20,10 +18,9 @@ import { ChatBotComponent } from './chat-bot/chat-bot.component';
     AppComponent,
     ClientComponentComponent,
     PrivateChatComponent,
-    AdminComponentComponent,
     LoginComponentComponent,
     RegistrationComponent,
-    ChatBotComponent,
+
 
   
   ],

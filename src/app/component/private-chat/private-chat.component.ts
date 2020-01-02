@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ChatServiceService } from '../../service/client-service/chat-service.service';
 import { FormGroup, FormControl } from '@angular/forms';
+import { JsonPipe } from '@angular/common';
 
 @Component({
   selector: 'app-private-chat',
@@ -16,7 +17,7 @@ export class PrivateChatComponent implements OnInit {
   userData: any;
   username = this.chatService.username
   receivername: any;
-  PrivateMessages = [];
+  PrivateMessages=[];
   chatForm: FormGroup;
   displayMessage = [];
   currentUser: any;
@@ -28,31 +29,29 @@ export class PrivateChatComponent implements OnInit {
     this.chatService.currentMessage.subscribe(params => {
       this.userData = params
       this.receivername = this.userData.name
-      this.displayMessageFunction();
+      
     })
-
+    this.chatService.newMessages.subscribe((data:any)=>{
+      this.PrivateMessages=JSON.parse(data) ;
+      console.log(this.PrivateMessages,"Messages Received");
+    });
+    console.log(this.PrivateMessages)
     this.chatService.getPrivateMessage().subscribe(data => {
-      let receivedData = JSON.parse(data)
-      this.PrivateMessages = this.chatService.UserMap.get(receivedData.senderName);
-      this.PrivateMessages.push(JSON.parse(data));
-      this.chatService.UserMap.set(receivedData.senderName, this.PrivateMessages)
-      console.log(this.chatService.UserMap)
-
+      let tempMessage = JSON.parse(data)
+      console.log(tempMessage,this.receivername)
+      if(tempMessage.receiverName == this.userData.senderName){
+        this.PrivateMessages.push(JSON.parse(data));
+      }
+      
     });
   }
 
   sendPrivateMessage(privateMessage) {
     this.chatForm.reset();
-    let message = { senderName: this.chatService.username, receiverName: this.receivername, msg: privateMessage }
-    console.log(message);
-    console.log(this.chatService.UserMap);
-    this.PrivateMessages = this.chatService.UserMap.get(this.receivername)
+    let message = {senderName: this.chatService.username, receiverName: this.receivername, msg: privateMessage}
     this.PrivateMessages.push(message)
     this.chatService.sendPrivateMessage(message);
 
   }
 
-  displayMessageFunction() {
-    this.displayMessage = this.chatService.UserMap.get(this.userData.name)
-  }
 }
