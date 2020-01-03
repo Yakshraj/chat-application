@@ -13,6 +13,7 @@ let io = socketIO(server);
 
 let activeClient = [];
 let allEmployees = [];
+let activeAdmins =[];
 let freeAdmins = [];
 
 
@@ -33,23 +34,47 @@ io.on('connection', (socket) => {
         db = client.db('local');
     })
 
-    socket.on('check-user', username => {
-        db.collection('users').findOne({ name: username }, function (findErr, result) {
-            if (result == null) {
-                io.sockets.in(socket.id).emit('failure');
+    socket.on('check-user', (checkUser) => {
+        let checkingUser = JSON.parse(checkUser)
+        let flag = false;
+        // For Users
+        for(i=0;i<activeClient.length;i++){
+            if(activeClient[i].name == checkingUser.name){
+                io.sockets.in(socket.id).emit('duplicate',console.log('duplicate emitted'))
+                flag = true    
+                break;
+            }  
+        }
+        // For Admins
+        if(flag == false){
+            for(i=0;i<activeAdmins.length;i++){
+                if(activeAdmins[i].name == checkingUser.name){
+                    io.sockets.in(socket.id).emit('duplicate',console.log('duplicate emitted'))
+                    flag = true
+                    break;    
+                }  
             }
-            else if (result.name == username) {
-                if (result.role == "admin") {
-                    freeAdmins.push({name:username,id:socket.id})
-                    console.log(freeAdmins)
-                    io.sockets.in(socket.id).emit('admin-success');
+        }
+        
+        if(flag == false){
+            db.collection('users').findOne({ name: checkingUser.name }, function (findErr, result) {
+                if (result == null) {
+                    io.sockets.in(socket.id).emit('failure');
                 }
-                else {
-                    activeClient.push({ name: username, id: socket.id });
-                    io.sockets.in(socket.id).emit('success');
+                else if (result.name == checkingUser.name) {
+                    if (result.role == "admin") {
+                        freeAdmins.push({name:checkingUser.name,id:socket.id})
+                        activeAdmins.push({name:checkingUser.name,id:socket.id})
+                        io.sockets.in(socket.id).emit('admin-success');
+                    }
+                    else {
+                        activeClient.push({ name:checkingUser.name, id: socket.id });
+                        io.sockets.in(socket.id).emit('success');
+                    }
                 }
-            }
-        });
+            });
+        }
+     
     });
 
     socket.on('new-user', (name) => {
@@ -71,27 +96,6 @@ io.on('connection', (socket) => {
         });
     });
 
-    // socket.on('get-details', (username) => {
-    //     if (activeClient.length == 0) {
-    //         activeClient.push({ name: username, id: socket.id });
-    //     }
-
-    //     else {
-    //         let duplicateFlag = 0;
-    //         for (i = 0; i < activeClient.length; i++) {
-    //             if (username == activeClient[i].name) {
-
-    //                 io.sockets.in(socket.id).emit('duplicate-user', username)
-    //                 duplicateFlag = 1;
-    //                 break;
-    //             }
-    //         }
-    //         if (duplicateFlag != 1) {
-    //             activeClient.push({ name: username, id: socket.id });
-
-    //         }
-    //     }
-    // });
 
     socket.on('join', (username) => {
         socket.join(username);
@@ -101,9 +105,7 @@ io.on('connection', (socket) => {
         io.emit('get-clients', JSON.stringify(activeClient));
     })
 
-    // socket.on('active-clients', () => {
-    //     io.emit('active-clients', JSON.stringify(activeClient));
-    // })
+    
     socket.on('chat-message', (message) => {
         io.emit('chat-message', message);
     });
@@ -115,6 +117,12 @@ io.on('connection', (socket) => {
                 this.temp = activeClient[i].name
                 activeClient.splice(i, 1);
             }
+        }    
+        for (i = 0; i < activeAdmins.length; i++) {
+            if (activeAdmins[i].id == socket.id) {
+                this.temp = activeAdmins[i].name
+                activeAdmins.splice(i, 1);
+            }   
         }
         console.log("deleted user",this.temp)
         io.emit('delete-map', this.temp)
@@ -130,6 +138,7 @@ io.on('connection', (socket) => {
                 botMessage = {senderName: privateDetails.receiverName, receiverName: privateDetails.senderName, msg:brain[privateDetails.msg]}
                 if(privateDetails.msg == 'connect to admin'){
                     if(freeAdmins.length>0){
+                        console.log(freeAdmins[0].name,"Line 141")
                         io.sockets.in(freeAdmins[0].name).emit('connect-to-admin',privateDetails.senderName)
                     }
                 }

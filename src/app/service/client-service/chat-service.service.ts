@@ -110,38 +110,64 @@ export class ChatServiceService {
 
   }
 
-  checkUser(username, callback) {
-    this.username = username;
-    let duplicateFlag = false;
-    this.getActiveClients().subscribe(activeClients => {
-      this.checkClient = JSON.parse(activeClients);
-      console.log(this.checkClient)
-      for (let i = 0; i < this.checkClient.length; i++) {
-        if (this.checkClient[i].name == this.username) {
-          duplicateFlag = true;
-          callback("duplicate");
-          break;
-        }
-      }
-      if (duplicateFlag == false) {
-        this.socket.emit('check-user', username);
+  checkUser(username,callback){
+    this.username=username;
+    this.getActiveClients();
+      let checkUser = {name:username,id:this.socket.id}
+      this.socket.emit('check-user',JSON.stringify(checkUser))
 
-        this.socket.on('success', () => {
-          this.joinUser(username)
-          this.userRole = "employee";
-          callback("success")
-        });
-        this.socket.on('failure', () => {
-          callback("failure");
-        });
-        this.socket.on('admin-success', () => {
-          this.joinUser(username)
-          this.userRole = "admin"
-          callback("admin")
-        })
-      }
-    });
+      this.socket.on('duplicate',()=>{
+        console.log("Duplicate Occurred")
+        callback('duplicate')
+      })
+      this.socket.on('success', () => {
+        this.joinUser(username)
+        this.userRole = "employee";
+        callback("success")
+      });
+      this.socket.on('failure', () => {
+        callback("failure");
+      });
+      this.socket.on('admin-success', () => {
+        this.joinUser(username)
+        this.userRole = "admin"
+        callback("admin")
+      });
   }
+  
+  
+  // checkUser(username, callback) {
+  //   this.username = username;
+  //   let duplicateFlag = false;
+  //   this.getActiveClients().subscribe(activeClients => {
+  //     this.checkClient = JSON.parse(activeClients);
+  //     console.log(this.checkClient)
+  //     for (let i = 0; i < this.checkClient.length; i++) {
+  //       if (this.checkClient[i].name == this.username) {
+  //         duplicateFlag = true;
+  //         callback("duplicate");
+  //         break;
+  //       }
+  //     }
+  //     if (duplicateFlag == false) {
+  //       this.socket.emit('check-user', username);
+
+        // this.socket.on('success', () => {
+        //   this.joinUser(username)
+        //   this.userRole = "employee";
+        //   callback("success")
+        // });
+        // this.socket.on('failure', () => {
+        //   callback("failure");
+        // });
+        // this.socket.on('admin-success', () => {
+        //   this.joinUser(username)
+        //   this.userRole = "admin"
+        //   callback("admin")
+        // })
+    //   }
+    // });
+  // }
 
   addNewUSer(name, callback) {
     this.socket.emit('new-user', name);
