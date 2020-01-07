@@ -35,11 +35,25 @@ export class ChatServiceService {
     this.socket = io.connect(this.url);
   }
   public setDetails(details) {
-    console.log(details)
-
+    console.log(details);
     this.fetchdetails = { senderName: this.username, receiverName: details.name }
-    this.fetchChatHistory()
+    this.fetchChatHistory();
     this.messageSource.next(details);
+  }
+
+  public setDetail(details){
+    console.log(details);
+    this.fetchdetails = { senderName: this.username, receiverName: details.name}
+    this.getBotAndUserChat(details.name);
+    this.messageSource.next(details);
+  }
+
+  public getBotAndUserChat(name){
+    this.socket.emit('pass-chatbot-and-user-chat',name);
+      this.socket.on('fetch-chatbot-and-user-chat',(botAndUserChat)=>{
+        console.log("botAndUserChat")
+         this.privateMessages.next(botAndUserChat);
+      })  
   }
 
   public sendMessage(message: string, username: string) {
@@ -59,6 +73,7 @@ export class ChatServiceService {
     console.log("In fetch Chat History")
     this.socket.emit('send-receiver-details', JSON.stringify(this.fetchdetails));
     this.socket.on('fetch-chat-history', (data) => {
+      
       this.privateMessages.next(data)
 
     });
@@ -110,38 +125,64 @@ export class ChatServiceService {
 
   }
 
-  checkUser(username, callback) {
-    this.username = username;
-    let duplicateFlag = false;
-    this.getActiveClients().subscribe(activeClients => {
-      this.checkClient = JSON.parse(activeClients);
-      console.log(this.checkClient)
-      for (let i = 0; i < this.checkClient.length; i++) {
-        if (this.checkClient[i].name == this.username) {
-          duplicateFlag = true;
-          callback("duplicate");
-          break;
-        }
-      }
-      if (duplicateFlag == false) {
-        this.socket.emit('check-user', username);
+  checkUser(username,callback){
+    this.username=username;
+    this.getActiveClients();
+      let checkUser = {name:username,id:this.socket.id}
+      this.socket.emit('check-user',JSON.stringify(checkUser))
 
-        this.socket.on('success', () => {
-          this.joinUser(username)
-          this.userRole = "employee";
-          callback("success")
-        });
-        this.socket.on('failure', () => {
-          callback("failure");
-        });
-        this.socket.on('admin-success', () => {
-          this.joinUser(username)
-          this.userRole = "admin"
-          callback("admin")
-        })
-      }
-    });
+      this.socket.on('duplicate',()=>{
+        console.log("Duplicate Occurred")
+        callback('duplicate')
+      })
+      this.socket.on('success', () => {
+        this.joinUser(username)
+        this.userRole = "employee";
+        callback("success")
+      });
+      this.socket.on('failure', () => {
+        callback("failure");
+      });
+      this.socket.on('admin-success', () => {
+        this.joinUser(username)
+        this.userRole = "admin"
+        callback("admin")
+      });
   }
+  
+  
+  // checkUser(username, callback) {
+  //   this.username = username;
+  //   let duplicateFlag = false;
+  //   this.getActiveClients().subscribe(activeClients => {
+  //     this.checkClient = JSON.parse(activeClients);
+  //     console.log(this.checkClient)
+  //     for (let i = 0; i < this.checkClient.length; i++) {
+  //       if (this.checkClient[i].name == this.username) {
+  //         duplicateFlag = true;
+  //         callback("duplicate");
+  //         break;
+  //       }
+  //     }
+  //     if (duplicateFlag == false) {
+  //       this.socket.emit('check-user', username);
+
+        // this.socket.on('success', () => {
+        //   this.joinUser(username)
+        //   this.userRole = "employee";
+        //   callback("success")
+        // });
+        // this.socket.on('failure', () => {
+        //   callback("failure");
+        // });
+        // this.socket.on('admin-success', () => {
+        //   this.joinUser(username)
+        //   this.userRole = "admin"
+        //   callback("admin")
+        // })
+    //   }
+    // });
+  // }
 
   addNewUSer(name, callback) {
     this.socket.emit('new-user', name);
@@ -164,6 +205,14 @@ export class ChatServiceService {
         observer.next(connectUser)
       })
     }) 
+  }
+
+  realAdminConnecting(){
+    return Observable.create((observer)=> {
+      this.socket.on('real-admin-connecting', admin => {
+        observer.next(admin);
+      })
+    })
   }
 
   BusyAdmin(value:any){

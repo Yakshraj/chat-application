@@ -53,6 +53,7 @@ export class PrivateChatComponent implements OnInit {
   sendPrivateMessage(privateMessage) {
     this.chatForm.reset();
     let message = {senderName: this.chatService.username, receiverName: this.receivername, msg: privateMessage}
+    console.log(message)
     this.PrivateMessages.push(message)
     this.chatService.sendPrivateMessage(message);
 

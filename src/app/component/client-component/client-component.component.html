@@ -14,14 +14,27 @@
             <h2 *ngIf="userRole=='employee'" >Active Clients</h2>
             <h2 *ngIf="userRole=='admin'" >All Users</h2>
          
-            
-            <div class="active-clients-div" *ngFor="let client of activeClients; let i=index">
-                <button (click)="gotoPrivateChat(client,i)" class="active-clients-user"
-                        [class.Highlighted-Name]="client.name == highlightName">{{client.name | titlecase}} <span class="message-count">{{client.count}}</span>
-                        <span   *ngIf="userRole=='admin'" class="Checkbox"><input type="checkbox" (click)="checkFunction(checkValue.checked,client.name)" #checkValue ></span>
-                    </button>
-                        
+            <div *ngIf="userRole=='employee'">
+                <div  class="active-clients-div" *ngFor="let client of activeClients; let i=index">
+                    <button (click)="gotoPrivateChat(client,i)" class="active-clients-user"
+                            [class.Highlighted-Name]="client.name == highlightName">{{client.name | titlecase}} <span class="message-count">{{client.count}}</span>
+                        </button>
+                            
+                </div>
             </div>
+           
+            <div *ngIf="userRole=='admin'">
+                <div   class="active-clients-div" *ngFor="let client of activeClients; let i=index">
+                    <button (click)="gotoPrivateChatAdmin(client,i)" class="active-clients-user"
+                            [class.Highlighted-Name]="client.name == highlightName">{{client.name | titlecase}} <span class="message-count">{{client.count}}</span>
+                            <span   *ngIf="userRole=='admin'" class="Checkbox"><input type="checkbox" (click)="checkFunction(checkValue.checked,client.name)" #checkValue ></span>
+                        </button>
+                            
+                </div>
+            </div>
+
+           
+
             <div *ngIf="userRole=='admin'">
                 <div  class="active-clients-div" *ngFor="let client of allEmployees; let i=index">
                     <button  class="active-clients-user" >{{client.name | titlecase}}</button>

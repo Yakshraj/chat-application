@@ -24,23 +24,40 @@ export class ClientComponentComponent implements OnInit {
   dataArray = [];
   userRole: any;
   allEmployees = [];
-  
+ 
+
+  adminDetails: any;
+  connectionDetails:any;
+;
 
   constructor(private chatService: ChatServiceService) {
     this.userRole = this.chatService.userRole;
     this.username = this.chatService.username;
-    this.chatService.connectToadmin().subscribe(data=>{
-     let value=alert(data+ " Wants To Connect You")
-      this.chatService.BusyAdmin(value)
+
+    this.chatService.connectToadmin().subscribe(data => {
+      this.connectionDetails = JSON.parse(data);
+      console.log(this.connectionDetails)
+     alert(this.connectionDetails.name + " Wants To Connect You");
+      
     })
-    if(this.userRole == 'employee'){
-      this.activeClients.push({name:"Agent",id:"agentId",count:0})
+
+    this.chatService.realAdminConnecting().subscribe(admin => {
+      this.adminDetails = JSON.parse(admin)
+      console.log(this.adminDetails);
+        this.activeClients.splice(0,1);
+        this.activeClients.push({name:this.adminDetails.agentConnected.name,id:this.adminDetails.agentConnected.id,count:0});
+        this.chatService.setDetails({name:this.adminDetails.agentConnected.name,id:this.adminDetails.agentConnected.id});
+    })
+
+    if (this.userRole == 'employee') {
+      this.activeClients.push({ name: "Agent", id: "agentId", count: 0 })
     }
 
-    this.chatService.deleteDisconnected().subscribe(data=>{
+    this.chatService.deleteDisconnected().subscribe(data => {
       for (let i = 0; i < this.activeClients.length; i++) {
         if (this.activeClients[i].name == data) {
-          this.activeClients.splice(i,1)
+          this.activeClients.splice(i, 1)
+          this.getAllUsers();
         }
       }
     })
@@ -52,9 +69,9 @@ export class ClientComponentComponent implements OnInit {
       inputText: new FormControl()
     });
     this.defineRole()
-   
 
-    
+
+
     this.chatService.getMessage().subscribe((message: any) => {
       this.messages.push(JSON.parse(message));
     });
@@ -73,12 +90,9 @@ export class ClientComponentComponent implements OnInit {
 
   }
 
-  defineRole(){
-    
-    if (this.userRole =='admin') {
+  defineRole() {
+    if (this.userRole == 'admin') {
       this.getAllUsers()
-      
-      
     }
     else {
       this.getActiveUsers()
@@ -99,6 +113,12 @@ export class ClientComponentComponent implements OnInit {
     this.chatService.setDetails(userDetails);
   }
 
+  gotoPrivateChatAdmin(userDetails, index) {
+    this.temp = 1;
+    this.activeClients[index].count = 0;
+    this.chatService.setDetail(userDetails);
+  }
+
   spliceSelfname() {
     for (let i = 0; i < this.dataArray.length; i++) {
       if (this.dataArray[i].name == this.username) {
@@ -106,30 +126,27 @@ export class ClientComponentComponent implements OnInit {
       }
     }
   }
-  getAllUsers(){
-    this.chatService.getAllUsers((data)=>{
+  getAllUsers() {
+    this.chatService.getAllUsers((data) => {
       this.allEmployees = JSON.parse(data);
       console.log(this.allEmployees)
       this.getActiveUsers()
     })
   }
-  
+
   getActiveUsers() {
     this.chatService.getActiveClients().subscribe(data => {
       this.dataArray = JSON.parse(data);
-      console.log("Array from Server DataArray", this.dataArray)
-
-      if(this.userRole == 'employee'){
+      if (this.userRole == 'employee') {
         this.spliceSelfname();
-      }      
+      }
       this.addMessageCounterToClient();
-      
-      if(this.userRole =='admin'){
-        for(let i=0;i<this.activeClients.length;i++){
-          for(let j=0;j<this.allEmployees.length;j++){
-            if(this.activeClients[i].name == this.allEmployees[j].name ){
+      if (this.userRole == 'admin') {
+        for (let i = 0; i < this.activeClients.length; i++) {
+          for (let j = 0; j < this.allEmployees.length; j++) {
+            if (this.activeClients[i].name == this.allEmployees[j].name) {
               console.log(this.allEmployees)
-              this.allEmployees.splice(j,1);
+              this.allEmployees.splice(j, 1);
             }
           }
         }
@@ -139,35 +156,35 @@ export class ClientComponentComponent implements OnInit {
   }
   addMessageCounterToClient() {
     // for Client
-   if(this.userRole == 'employee'){
-    let j = 0;
-    j = this.dataArray.length - 1;
-    // if fresh start
-    if (this.activeClients.length == 1) {
-      for (let i = 0; i < this.dataArray.length; i++) {
-        this.activeClients.push({name: this.dataArray[i].name,id:this.dataArray[i].id,count:0});
-        
+    if (this.userRole == 'employee') {
+      let j = 0;
+      j = this.dataArray.length - 1;
+      // if fresh start
+      if (this.activeClients.length == 1) {
+        for (let i = 0; i < this.dataArray.length; i++) {
+          this.activeClients.push({ name: this.dataArray[i].name, id: this.dataArray[i].id, count: 0 });
+
+        }
       }
-    }
-    //if already started
-    else if (this.activeClients.length == this.dataArray.length) {
-      this.activeClients.push({name:this.dataArray[j].name,id:this.dataArray[j].id,count:0});
-    }
-  }
-  
-  // for agent
-  else{
-      
-    if (this.activeClients.length == 0) {
-      for (let i = 0; i < this.dataArray.length; i++) {
-        this.activeClients.push({name: this.dataArray[i].name,id:this.dataArray[i].id,count:0});
+      //if already started
+      else if (this.activeClients.length == this.dataArray.length) {
+        this.activeClients.push({ name: this.dataArray[j].name, id: this.dataArray[j].id, count: 0 });
       }
     }
 
-    else if(this.activeClients.length < this.dataArray.length){
-      this.activeClients.push({name: this.dataArray[this.dataArray.length-1].name,id:this.dataArray[this.dataArray.length-1].id,count:0});
+    // for agent
+    else {
+
+      if (this.activeClients.length == 0) {
+        for (let i = 0; i < this.dataArray.length; i++) {
+          this.activeClients.push({ name: this.dataArray[i].name, id: this.dataArray[i].id, count: 0 });
+        }
+      }
+
+      else if (this.activeClients.length < this.dataArray.length) {
+        this.activeClients.push({ name: this.dataArray[this.dataArray.length - 1].name, id: this.dataArray[this.dataArray.length - 1].id, count: 0 });
+      }
     }
-  }
 
   }
 
