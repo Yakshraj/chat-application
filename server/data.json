@@ -4,5 +4,6 @@
         "how can you help me":"How you want me to help you?",
         "who are you":"I am Bot",
         "connect to admin":"Connecting you to admin. Please wait",
-        "out_of_brain" : "Sorry Cannot Understand"
+        "out_of_brain" : "Sorry Cannot Understand",
+        "agent_busy" : "Agent is busy. Please try again in few minutes"
     }

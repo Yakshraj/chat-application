@@ -10,6 +10,7 @@ import { JsonPipe } from '@angular/common';
   styleUrls: ['./private-chat.component.css']
 })
 export class PrivateChatComponent implements OnInit {
+  closePrivateComponent: any;
 
   constructor(private chatService: ChatServiceService) {
   }

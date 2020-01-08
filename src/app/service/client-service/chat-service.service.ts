@@ -31,13 +31,15 @@ export class ChatServiceService {
   newMessages = this.privateMessages.asObservable();
 
 
+
   constructor() {
     this.socket = io.connect(this.url);
   }
   public setDetails(details) {
     console.log(details);
-    this.fetchdetails = { senderName: this.username, receiverName: details.name }
+    this.fetchdetails = {senderName: this.username, receiverName: details.name }
     this.fetchChatHistory();
+    
     this.messageSource.next(details);
   }
 
@@ -54,6 +56,15 @@ export class ChatServiceService {
         console.log("botAndUserChat")
          this.privateMessages.next(botAndUserChat);
       })  
+  }
+
+  public getAllAgents(){
+    this.socket.emit('all-agents');
+    return Observable.create((observer)=> {
+      this.socket.on('get-all-agents',(agents)=>{
+        observer.next(agents);
+      })
+    })
   }
 
   public sendMessage(message: string, username: string) {
@@ -112,7 +123,6 @@ export class ChatServiceService {
     return Observable.create((observer) => {
       this.socket.on('delete-map', (data: any) => {
         observer.next(data);
-
       })
     });
   }
@@ -135,7 +145,7 @@ export class ChatServiceService {
         console.log("Duplicate Occurred")
         callback('duplicate')
       })
-      this.socket.on('success', () => {
+      this.socket.on('user-success', () => {
         this.joinUser(username)
         this.userRole = "employee";
         callback("success")
@@ -147,6 +157,11 @@ export class ChatServiceService {
         this.joinUser(username)
         this.userRole = "admin"
         callback("admin")
+      });
+      this.socket.on('agent-success', () => {
+        this.joinUser(username)
+        this.userRole = "agent"
+        callback("agent")
       });
   }
   
@@ -207,7 +222,7 @@ export class ChatServiceService {
     }) 
   }
 
-  realAdminConnecting(){
+  realAgentConnecting(){
     return Observable.create((observer)=> {
       this.socket.on('real-admin-connecting', admin => {
         observer.next(admin);
@@ -215,7 +230,8 @@ export class ChatServiceService {
     })
   }
 
-  BusyAdmin(value:any){
-    console.log(value)
+  public addFreeAgent(agent){
+    
+    this.socket.emit('add-free-agent',agent);
   }
 }

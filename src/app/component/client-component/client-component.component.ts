@@ -24,10 +24,12 @@ export class ClientComponentComponent implements OnInit {
   dataArray = [];
   userRole: any;
   allEmployees = [];
- 
-
-  adminDetails: any;
-  connectionDetails:any;
+  isShow:Boolean = false;
+  agentConnected:Boolean = false;
+  isShowAgent = false;
+  agentDetails: any;
+  agentConnectionDetails:any;
+  allAgents: any;
 ;
 
   constructor(private chatService: ChatServiceService) {
@@ -35,18 +37,19 @@ export class ClientComponentComponent implements OnInit {
     this.username = this.chatService.username;
 
     this.chatService.connectToadmin().subscribe(data => {
-      this.connectionDetails = JSON.parse(data);
-      console.log(this.connectionDetails)
-     alert(this.connectionDetails.name + " Wants To Connect You");
+      this.agentConnected = true;
+      this.agentConnectionDetails = JSON.parse(data);
+      console.log(this.agentConnectionDetails)
+     alert(this.agentConnectionDetails.name + " Wants To Connect You");
       
     })
 
-    this.chatService.realAdminConnecting().subscribe(admin => {
-      this.adminDetails = JSON.parse(admin)
-      console.log(this.adminDetails);
+    this.chatService.realAgentConnecting().subscribe(admin => {
+      this.agentDetails = JSON.parse(admin)
+      console.log(this.agentDetails);
         this.activeClients.splice(0,1);
-        this.activeClients.push({name:this.adminDetails.agentConnected.name,id:this.adminDetails.agentConnected.id,count:0});
-        this.chatService.setDetails({name:this.adminDetails.agentConnected.name,id:this.adminDetails.agentConnected.id});
+        this.activeClients.push({name:this.agentDetails.agentConnected.name,id:this.agentDetails.agentConnected.id,count:0});
+        this.chatService.setDetails({name:this.agentDetails.agentConnected.name,id:this.agentDetails.agentConnected.id});
     })
 
     if (this.userRole == 'employee') {
@@ -54,9 +57,11 @@ export class ClientComponentComponent implements OnInit {
     }
 
     this.chatService.deleteDisconnected().subscribe(data => {
+      this.agentConnected = false;
+      this.chatService.addFreeAgent(this.username);
       for (let i = 0; i < this.activeClients.length; i++) {
         if (this.activeClients[i].name == data) {
-          this.activeClients.splice(i, 1)
+          this.activeClients.splice(i, 1);
           this.getAllUsers();
         }
       }
@@ -90,6 +95,10 @@ export class ClientComponentComponent implements OnInit {
 
   }
 
+  show(){
+    this.isShow = !this.isShow;
+  }
+
   defineRole() {
     if (this.userRole == 'admin') {
       this.getAllUsers()
@@ -99,6 +108,14 @@ export class ClientComponentComponent implements OnInit {
     }
   }
 
+  getAllAgents(){
+    this.isShowAgent = !this.isShowAgent;
+    this.chatService.getAllAgents().subscribe((data)=> {
+        this.allAgents = JSON.parse(data);
+        console.log(this.allAgents)
+    });
+  }
+
   checkFunction(checked, name) {
     this.chatService.checkBoxValue(checked, name);
   }
@@ -106,6 +123,10 @@ export class ClientComponentComponent implements OnInit {
   sendMessage() {
     this.chatService.sendMessage(this.message, this.username);
     this.message = '';
+  }
+  gotoPrivateChatAgent(name){
+    let userDetails = {name:name}
+    this.chatService.setDetail(userDetails);
   }
   gotoPrivateChat(userDetails, index) {
     this.temp = 1;
@@ -198,5 +219,10 @@ export class ClientComponentComponent implements OnInit {
     if (this.searchedUser == null) {
       this.errorMessage = constant.userNotFound;
     }
+  }
+
+  disconnectUser(){
+    this.agentConnected = false;
+    this.chatService.addFreeAgent(this.username);
   }
 }

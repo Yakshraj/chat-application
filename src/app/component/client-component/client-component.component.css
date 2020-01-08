@@ -159,4 +159,22 @@ border-radius: 5px;
         background-color: green;
         color: white;
         padding: 4px 6px;
+        
+}
+.online{
+    border-radius: 100%;
+    background-color: green;
+    color: white;
+    padding: 4px 4px;
+    float: right;
+    margin-top: 3%;
+}
+.disconnect{
+    color: red;
+    font-size: 12px;
+    float: right;
+    padding-top: 5px;
+}
+.heading{
+    margin-top: 2%;
 }

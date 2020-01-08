@@ -11,14 +11,15 @@ let server = http.Server(app);
 let socketIO = require('socket.io')
 let io = socketIO(server);
 
+let allAgents=[];
 let activeClient = [];
 let allEmployees = [];
-let activeAdmins = [];
-let freeAdmins = [];
+
+let activeAgents = [];
+let freeAgents = [];
 let privateDetails;
 
 let connectedUserAndAdmin = [];
-let senderSocketName;
 var db;
 const port = process.env.PORT || 3001;
 var Sentiment = require('sentiment');
@@ -45,10 +46,10 @@ io.on('connection', (socket) => {
                 break;
             }
         }
-        // For Admins
+        // For Agents
         if (flag == false) {
-            for (i = 0; i < activeAdmins.length; i++) {
-                if (activeAdmins[i].name == checkingUser.name) {
+            for (i = 0; i < activeAgents.length; i++) {
+                if (activeAgents[i].name == checkingUser.name) {
                     io.sockets.in(socket.id).emit('duplicate')
                     flag = true
                     break;
@@ -63,16 +64,19 @@ io.on('connection', (socket) => {
                 }
                 else if (result.name == checkingUser.name) {
                     if (result.role == "admin") {
-                        freeAdmins.push({ name: checkingUser.name, id: socket.id })
-                        activeAdmins.push({ name: checkingUser.name, id: socket.id })
+                       
                         io.sockets.in(socket.id).emit('admin-success');
                     }
-                    else {
+                    else if(result.role == "employee"){
                         activeClient.push({ name: checkingUser.name, id: socket.id });
-                        io.sockets.in(socket.id).emit('success');
+                        io.sockets.in(socket.id).emit('user-success');
+                    }
+                    else{
+                        freeAgents.push({ name: checkingUser.name, id: socket.id })
+                        activeAgents.push({ name: checkingUser.name, id: socket.id })
+                        io.sockets.in(socket.id).emit('agent-success');
                     }
                 }
-                console.log(freeAdmins)
             });
         }
 
@@ -119,19 +123,21 @@ io.on('connection', (socket) => {
                 activeClient.splice(i, 1);
             }
         }
-        for (i = 0; i < activeAdmins.length; i++) {
-            if (activeAdmins[i].id == socket.id) {
-                this.temp = activeAdmins[i].name
-                activeAdmins.splice(i, 1);
+        for (i = 0; i < activeAgents.length; i++) {
+            if (activeAgents[i].id == socket.id) {
+                this.temp = activeAgents[i].name
+                activeAgents.splice(i, 1);
             }
         }
-        for(i=0; i<freeAdmins.length;i++){
-            if(freeAdmins[i].id == socket.id){
-                this.temp = freeAdmins[i].name;
-                freeAdmins.splice(i,1);
-                 connectedUserAndAdmin = connectedUserAndAdmin.filter(function(value,index,arr){
-                    return connectedUserAndAdmin.name != this.temp;
-                })
+        for(i=0; i<freeAgents.length;i++){
+            if(freeAgents[i].id == socket.id){
+                this.temp = freeAgents[i].name;
+                freeAgents.splice(i,1);
+            }
+        }
+        for(let i in connectedUserAndAdmin){
+            if(this.temp == connectedUserAndAdmin[i].name){
+                connectedUserAndAdmin.splice(i,1);
             }
         }
         //console.log("deleted user",this.temp)
@@ -139,21 +145,75 @@ io.on('connection', (socket) => {
         io.emit('get-clients', JSON.stringify(activeClient));
     });
 
+    // socket.on('active-agents',()=> {
+    //     io.emit('get-active-agents',JSON.stringify(activeClient));
+    // });
+    socket.on('all-agents',()=> {
+        db.collection('users').find({role:"agent"}).toArray(function(error,result){
+                allAgents = result;
+                for(let i=0;i<activeAgents.length;i++){
+                    for(let j=0;j<allAgents.length;j++){
+                        if(activeAgents[i].name == allAgents[j].name){
+                            allAgents[j].LoggedIn = true;
+                        }
+                        else{
+                            allAgents[j].LoggedIn = false;
+                        }
+                    }
+                }
+                for(i in freeAgents){
+                    for(j in allAgents){
+                        if(freeAgents[i].name == allAgents[j].name){
+                            allAgents[j].status = "free";
+                        } 
+                        else{
+                            allAgents[j].status = "busy";
+                        }
+                    }
+                }
+                io.emit('get-all-agents',JSON.stringify(allAgents))
+                console.log(allAgents)
+        });
+    });
+    socket.on('add-free-agent',agent => {
+        freeAgents.push({name:agent,role:'agent'});
+        for(i in connectedUserAndAdmin){
+            if(connectedUserAndAdmin[i].agentConnected.name == agent){
+                connectedUserAndAdmin.splice(i,1);
+            }
+        }
+    })
+
     socket.on('private-message', (data) => {
 
         privateDetails = JSON.parse(data);
-        //console.log(privateDetails)
+        //   var docx = sentiment.analyze(privateDetails.msg).score;
+        // console.log(docx)
+        // if (docx < 0) {
+        //     emotion = 'Negative'
+        // }
+        // else if (docx = 0) {
+        //     emotion = 'Neutral'
+        // }
+        // else {
+        //     emotion = 'Positive'
+        // }
+        // console.log(emotion)
+     
         db.collection('ChatMessages').insertOne(privateDetails);
         if (privateDetails.receiverName == 'Agent') {
             if (privateDetails.msg in brain) {
                 botMessage = { senderName: privateDetails.receiverName, receiverName: privateDetails.senderName, msg: brain[privateDetails.msg] }
                 if (privateDetails.msg == 'connect to admin') {
-                    if (freeAdmins.length > 0) {
-                        connectedUserAndAdmin.push({ name: privateDetails.senderName, agentConnected: { name: freeAdmins[0].name, id: freeAdmins[0].id } });
-                        console.log(freeAdmins[0].name, "Line 141", privateDetails.senderName)
-                        io.sockets.in(freeAdmins[0].name).emit('connect-to-admin', JSON.stringify({ name: privateDetails.senderName, agentConnected: { name: freeAdmins[0].name, id: freeAdmins[0].id } }));
-                        io.sockets.in(privateDetails.senderName).emit('real-admin-connecting', JSON.stringify({ name: privateDetails.senderName, agentConnected: { name: freeAdmins[0].name, id: freeAdmins[0].id } }));
-                        freeAdmins.splice(0, 1);
+                    if (freeAgents.length > 0) {
+                        connectedUserAndAdmin.push({ name: privateDetails.senderName, agentConnected: { name: freeAgents[0].name, id: freeAgents[0].id } });
+                        io.sockets.in(freeAgents[0].name).emit('connect-to-admin', JSON.stringify({ name: privateDetails.senderName, agentConnected: { name: freeAgents[0].name, id: freeAgents[0].id } }));
+                        io.sockets.in(privateDetails.senderName).emit('real-admin-connecting', JSON.stringify({ name: privateDetails.senderName, agentConnected: { name: freeAgents[0].name, id: freeAgents[0].id } }));
+                        freeAgents.splice(0, 1);
+                    }
+                    else{
+                        botMessage = { senderName: privateDetails.receiverName, receiverName: privateDetails.senderName, msg: brain["agent_busy"] }
+
                     }
                 }
 
@@ -165,19 +225,13 @@ io.on('connection', (socket) => {
             db.collection('ChatMessages').insertOne(botMessage);
         }
         else {
-            //console.log('here', privateDetails.receiverName)
             io.sockets.in(privateDetails.receiverName).emit('send-private-message', data);
         }
-        console.log(connectedUserAndAdmin)
-
     });
 
     socket.on('pass-chatbot-and-user-chat', (name) => {
-        //console.log("here")
-        console.log(name)
         db.collection('ChatMessages').find({ $or: [{ senderName: name, receiverName: "Agent" }, { senderName: "Agent", receiverName: name }] })
             .toArray(function (error, result) {
-                //console.log(result, connectedUserAndAdmin[0].agentConnected.name);
                 for (let i = 0; i < connectedUserAndAdmin.length; i++) {
                     if (connectedUserAndAdmin[i].name == name) {
                         io.sockets.in(connectedUserAndAdmin[i].agentConnected.name).emit('fetch-chatbot-and-user-chat', JSON.stringify(result));
@@ -187,37 +241,13 @@ io.on('connection', (socket) => {
             })
     });
 
-
-
-
-
     socket.on('send-receiver-details', (fetchDetails) => {
-        //console.log("Call received")
         let FetchDetails = JSON.parse(fetchDetails)
-        if (FetchDetails.userRole == 'admin') {
-            console.log("here in sd")
-            db.collection('ChatMessages').find({ $or: [{ senderName: FetchDetails.senderName, receiverName: FetchDetails.receiverName }, { senderName: FetchDetails.receiverName, receiverName: FetchDetails.senderName }, { senderName: 'Agent', receiverName: FetchDetails.senderName }, { senderName: FetchDetails.senderName, receiverName: 'Agent' }] })
-                .toArray(function (error, result) {
-                    let chatHistory = result;
-                    //console.log(result,"Chat History fetched");
-                    io.sockets.in(socket.id).emit('fetch-chat-history', JSON.stringify(chatHistory));
-                });
-        }
-        else {
-            //console.log(fetchDetails)
-            console.log("here in sdad")
             db.collection('ChatMessages').find({ $or: [{ senderName: FetchDetails.senderName, receiverName: FetchDetails.receiverName }, { senderName: FetchDetails.receiverName, receiverName: FetchDetails.senderName }] })
                 .toArray(function (error, result) {
                     let chatHistory = result;
-                    //console.log(result,"Chat History fetched");
                     io.sockets.in(socket.id).emit('fetch-chat-history', JSON.stringify(chatHistory));
                 });
-        }
-
     })
-
-
-
-
 });
 

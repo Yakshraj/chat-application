@@ -33,6 +33,10 @@ export class LoginComponentComponent implements OnInit {
           this.loginSuccess = true;
           this.role = "admin";
         }
+        else if(value == "agent"){
+          this.loginSuccess = true;
+          this.role = "agent";
+        }
         else if(value =="duplicate"){
           this.errorMessage = constant.userAlreadyActive ;
         }

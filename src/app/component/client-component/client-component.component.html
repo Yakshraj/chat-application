@@ -12,7 +12,8 @@
             <div class="search-result-error">{{errorMessage}}</div>
        
             <h2 *ngIf="userRole=='employee'" >Active Clients</h2>
-            <h2 *ngIf="userRole=='admin'" >All Users</h2>
+            <h2 *ngIf="userRole=='admin'" (click)="show()">All Users</h2>
+          
          
             <div *ngIf="userRole=='employee'">
                 <div  class="active-clients-div" *ngFor="let client of activeClients; let i=index">
@@ -22,32 +23,42 @@
                             
                 </div>
             </div>
-           
-            <div *ngIf="userRole=='admin'">
-                <div   class="active-clients-div" *ngFor="let client of activeClients; let i=index">
-                    <button (click)="gotoPrivateChatAdmin(client,i)" class="active-clients-user"
-                            [class.Highlighted-Name]="client.name == highlightName">{{client.name | titlecase}} <span class="message-count">{{client.count}}</span>
-                            <span   *ngIf="userRole=='admin'" class="Checkbox"><input type="checkbox" (click)="checkFunction(checkValue.checked,client.name)" #checkValue ></span>
-                        </button>
-                            
+          
+            <div *ngIf="isShow && userRole=='admin'">
+                    <div class="active-clients-div" *ngFor="let client of activeClients; let i=index">
+                        <button (click)="gotoPrivateChatAdmin(client,i)" class="active-clients-user"
+                                [class.Highlighted-Name]="client.name == highlightName">{{client.name | titlecase}} <span class="online"></span>
+                            </button>
+                    </div>
+            </div>
+
+            <div *ngIf="userRole=='agent'">
+                <h2>Connected Users</h2>
+                <div *ngIf="agentConnected" class="active-clients-div">
+                    <button (click)="gotoPrivateChatAgent(agentConnectionDetails.name)" class="active-clients-user" #agentName>{{agentConnectionDetails?.name | titlecase}}
+                        <span class="disconnect" (click)="disconnectUser()">Disconnect</span>
+                    </button>
                 </div>
             </div>
 
-           
-
-            <div *ngIf="userRole=='admin'">
-                <div  class="active-clients-div" *ngFor="let client of allEmployees; let i=index">
-                    <button  class="active-clients-user" >{{client.name | titlecase}}</button>
-                </div> 
+            <div>
+                <div *ngIf="isShow && userRole=='admin' ">
+                    <div  class="active-clients-div" *ngFor="let client of allEmployees; let i=index">
+                        <button  class="active-clients-user" >{{client.name | titlecase}}</button>
+                    </div> 
+                </div>
+                <h2 *ngIf="userRole == 'admin'" (click)="getAllAgents()" class="heading">Agents</h2>
+                <div *ngIf="isShowAgent && userRole=='admin'">
+                    <div *ngFor="let agent of allAgents; let i = index" class="active-clients-div">
+                        <button class="active-clients-user">{{agent.name}}</button>
+                    </div>
+                </div>
             </div>
-            
-
-
         </div>
     
         <div class="messages-component">
             <div class="broadcast-messages">
-                <div class="broadcast-messages-sender-Div-caption"><b>Broadcast Here</b></div>
+                <div class="broadcast-messages-sender-Div-caption"><b>Broadcast</b></div>
                 <div class="broadcast-messages-sender-Div" #scrollMe [scrollTop]="scrollMe.scrollHeight">
     
                     <div *ngFor="let message of messages" class="broadcast-messages-list">
@@ -61,7 +72,7 @@
                     </div>
                 </div>
                 <div class="broadcast-messages-sender">
-                    <form [formGroup]="broadcast_form" (ngSubmit)="sendMessage()" ngNativeValidate
+                    <form *ngIf="userRole != 'agent' " [formGroup]="broadcast_form" (ngSubmit)="sendMessage()" ngNativeValidate
                           class="broadcast-messages-sender-form">
                         <input class="broadcast-messages-input" [(ngModel)]="message"
                                 required formControlName="inputText" />
