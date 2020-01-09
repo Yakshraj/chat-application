@@ -1,88 +1,88 @@
 <div class="main-window">
-        <div class="active-clients">
-            <div class="profile-data"><img class="profile" src="./assets/profile.jpg" alt="">
-                <h1 class="username">{{username | titlecase}}</h1>
-            </div>
-            <div class="active-clients-searchbox">
-                <input type="text" #userName class="search-input">
-                <button (click)="searchUserName(userName.value)" class="search-button">search</button>
-            </div>
-    
-            <div (click)="gotoPrivateChat(searchedUser)" class="search-result" [class.active-clients-user]="searchedUser?.name">{{searchedUser?.name | titlecase}}</div>
-            <div class="search-result-error">{{errorMessage}}</div>
-       
-            <h2 *ngIf="userRole=='employee'" >Active Clients</h2>
-            <h2 *ngIf="userRole=='admin'" (click)="show()">All Users</h2>
-          
-         
-            <div *ngIf="userRole=='employee'">
-                <div  class="active-clients-div" *ngFor="let client of activeClients; let i=index">
-                    <button (click)="gotoPrivateChat(client,i)" class="active-clients-user"
-                            [class.Highlighted-Name]="client.name == highlightName">{{client.name | titlecase}} <span class="message-count">{{client.count}}</span>
-                        </button>
-                            
-                </div>
-            </div>
-          
-            <div *ngIf="isShow && userRole=='admin'">
-                    <div class="active-clients-div" *ngFor="let client of activeClients; let i=index">
-                        <button (click)="gotoPrivateChatAdmin(client,i)" class="active-clients-user"
-                                [class.Highlighted-Name]="client.name == highlightName">{{client.name | titlecase}} <span class="online"></span>
-                            </button>
-                    </div>
-            </div>
+    <div class="active-clients">
+        <div class="profile-data"><img class="profile" src="./assets/profile.jpg" alt="">
+            <h1 class="username">{{username | titlecase}}</h1>
+        </div>
+        <div class="active-clients-searchbox">
+            <input type="text" #userName class="search-input">
+            <button (click)="searchUserName(userName.value)" class="search-button">search</button>
+        </div>
 
-            <div *ngIf="userRole=='agent'">
-                <h2>Connected Users</h2>
-                <div *ngIf="agentConnected" class="active-clients-div">
-                    <button (click)="gotoPrivateChatAgent(agentConnectionDetails.name)" class="active-clients-user" #agentName>{{agentConnectionDetails?.name | titlecase}}
-                        <span class="disconnect" (click)="disconnectUser()">Disconnect</span>
+        <div (click)="gotoPrivateChat(searchedUser)" class="search-result"
+            [class.active-clients-user]="searchedUser?.name">{{searchedUser?.name | titlecase}}</div>
+        <div class="search-result-error">{{errorMessage}}</div>
+
+
+        <div *ngIf="userRole=='employee'">
+            <h2 >Active Clients</h2>
+            <div class="active-clients-div" *ngFor="let client of activeClients; let i=index">
+                <button (click)="gotoPrivateChat(client,i)" class="active-clients-user"
+                    [class.Highlighted-Name]="client.name == highlightName">{{client.name | titlecase}} <span
+                        class="message-count">{{client.count}}</span>
+                </button>
+            </div>
+        </div>
+     
+        <div *ngIf="userRole=='agent'">
+            <h2>Connected Users</h2>
+            <div *ngIf="agentConnected" class="active-clients-div">
+                <button (click)="gotoPrivateChatAgent(agentConnectionDetails.name)" class="active-clients-user"
+                    #agentName>{{agentConnectionDetails?.name | titlecase}}
+                    <span class="disconnect" (click)="disconnectUser()">Disconnect</span>
+                </button>
+            </div>
+        </div>
+
+        <div *ngIf="userRole=='admin'">
+            <h2 (click)="show()">All Users</h2>
+            <div *ngIf="isShow">
+                <div class="active-clients-div" *ngFor="let client of activeClients; let i=index">
+                    <button (click)="gotoPrivateChatAdmin(client,i)" class="active-clients-user"
+                        [class.Highlighted-Name]="client.name == highlightName">{{client.name | titlecase}} <span
+                            class="online"></span>
                     </button>
                 </div>
             </div>
-
-            <div>
-                <div *ngIf="isShow && userRole=='admin' ">
-                    <div  class="active-clients-div" *ngFor="let client of allEmployees; let i=index">
-                        <button  class="active-clients-user" >{{client.name | titlecase}}</button>
-                    </div> 
-                </div>
-                <h2 *ngIf="userRole == 'admin'" (click)="getAllAgents()" class="heading">Agents</h2>
-                <div *ngIf="isShowAgent && userRole=='admin'">
-                    <div *ngFor="let agent of allAgents; let i = index" class="active-clients-div">
-                        <button class="active-clients-user">{{agent.name}}</button>
-                    </div>
+            <div *ngIf="isShow">
+                <div class="active-clients-div" *ngFor="let client of allEmployees; let i=index">
+                    <button class="active-clients-user">{{client.name | titlecase}}</button>
                 </div>
             </div>
-        </div>
-    
-        <div class="messages-component">
-            <div class="broadcast-messages">
-                <div class="broadcast-messages-sender-Div-caption"><b>Broadcast</b></div>
-                <div class="broadcast-messages-sender-Div" #scrollMe [scrollTop]="scrollMe.scrollHeight">
-    
-                    <div *ngFor="let message of messages" class="broadcast-messages-list">
-                        <div *ngIf=" message.name == username; then thenBlock else elseBlock"></div>
-                        <ng-template #thenBlock>
-                            <div class="then-block"> <b>Me : </b>{{message.msg}}</div>
-                        </ng-template>
-                        <ng-template #elseBlock>
-                            <div class="else-block"> <b> {{message.name | titlecase}} : </b>{{message.msg}}</div>
-                        </ng-template>
-                    </div>
+            <h2 (click)="getAllAgents()" class="heading">Agents</h2>
+            <div *ngIf="isShowAgent">
+                <div *ngFor="let agent of allAgents; let i = index" class="active-clients-div">
+                    <button class="active-clients-user">{{agent.name}}</button>
                 </div>
-                <div class="broadcast-messages-sender">
-                    <form *ngIf="userRole != 'agent' " [formGroup]="broadcast_form" (ngSubmit)="sendMessage()" ngNativeValidate
-                          class="broadcast-messages-sender-form">
-                        <input class="broadcast-messages-input" [(ngModel)]="message"
-                                required formControlName="inputText" />
-                        <button class="broadcast-messages-button">Send</button>
-                    </form>
-                </div>
-            </div>
-            <div>
-                <app-private-chat></app-private-chat>
             </div>
         </div>
     </div>
     
+    <div class="messages-component">
+        <div class="broadcast-messages">
+            <div class="broadcast-messages-sender-Div-caption"><b>Broadcast</b></div>
+            <div class="broadcast-messages-sender-Div" #scrollMe [scrollTop]="scrollMe.scrollHeight">
+
+                <div *ngFor="let message of messages" class="broadcast-messages-list">
+                    <div *ngIf=" message.name == username; then thenBlock else elseBlock"></div>
+                    <ng-template #thenBlock>
+                        <div class="then-block"> <b>Me : </b>{{message.msg}}</div>
+                    </ng-template>
+                    <ng-template #elseBlock>
+                        <div class="else-block"> <b> {{message.name | titlecase}} : </b>{{message.msg}}</div>
+                    </ng-template>
+                </div>
+            </div>
+            <div class="broadcast-messages-sender">
+                <form *ngIf="userRole != 'agent' " [formGroup]="broadcast_form" (ngSubmit)="sendMessage()"
+                    ngNativeValidate class="broadcast-messages-sender-form">
+                    <input class="broadcast-messages-input" [(ngModel)]="message" required
+                        formControlName="inputText" />
+                    <button class="broadcast-messages-button">Send</button>
+                </form>
+            </div>
+        </div>
+        <div>
+            <app-private-chat></app-private-chat>
+        </div>
+    </div>
+</div>

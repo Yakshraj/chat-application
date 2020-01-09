@@ -75,6 +75,7 @@ io.on('connection', (socket) => {
                         freeAgents.push({ name: checkingUser.name, id: socket.id })
                         activeAgents.push({ name: checkingUser.name, id: socket.id })
                         io.sockets.in(socket.id).emit('agent-success');
+                        console.log("agent connected",freeAgents)
                     }
                 }
             });
@@ -133,6 +134,7 @@ io.on('connection', (socket) => {
             if(freeAgents[i].id == socket.id){
                 this.temp = freeAgents[i].name;
                 freeAgents.splice(i,1);
+                console.log("agent disconnected",freeAgents)
             }
         }
         for(let i in connectedUserAndAdmin){
@@ -140,72 +142,55 @@ io.on('connection', (socket) => {
                 connectedUserAndAdmin.splice(i,1);
             }
         }
-        //console.log("deleted user",this.temp)
         io.emit('delete-map', this.temp)
         io.emit('get-clients', JSON.stringify(activeClient));
     });
 
-    // socket.on('active-agents',()=> {
-    //     io.emit('get-active-agents',JSON.stringify(activeClient));
-    // });
     socket.on('all-agents',()=> {
         db.collection('users').find({role:"agent"}).toArray(function(error,result){
                 allAgents = result;
-                for(let i=0;i<activeAgents.length;i++){
-                    for(let j=0;j<allAgents.length;j++){
-                        if(activeAgents[i].name == allAgents[j].name){
-                            allAgents[j].LoggedIn = true;
-                        }
-                        else{
-                            allAgents[j].LoggedIn = false;
-                        }
-                    }
-                }
-                for(i in freeAgents){
-                    for(j in allAgents){
-                        if(freeAgents[i].name == allAgents[j].name){
-                            allAgents[j].status = "free";
-                        } 
-                        else{
-                            allAgents[j].status = "busy";
-                        }
-                    }
-                }
+                // for(let i=0;i<activeAgents.length;i++){
+                //     for(let j=0;j<allAgents.length;j++){
+                //         if(activeAgents[i].name == allAgents[j].name){
+                //             allAgents[j].LoggedIn = true;
+                //         }
+                //         else{
+                //             allAgents[j].LoggedIn = false;
+                //         }
+                //     }
+                // }
+                // for(i in freeAgents){
+                //     for(j in allAgents){
+                //         if(freeAgents[i].name == allAgents[j].name){
+                //             allAgents[j].status = "free";
+                //         } 
+                //         else{
+                //             allAgents[j].status = "busy";
+                //         }
+                //     }
+                // }
                 io.emit('get-all-agents',JSON.stringify(allAgents))
                 console.log(allAgents)
         });
     });
-    socket.on('add-free-agent',agent => {
-        freeAgents.push({name:agent,role:'agent'});
-        for(i in connectedUserAndAdmin){
-            if(connectedUserAndAdmin[i].agentConnected.name == agent){
-                connectedUserAndAdmin.splice(i,1);
-            }
-        }
-    })
+    // socket.on('add-free-agent',agent => {
+    //     freeAgents.push({name:agent,role:'agent'});
+    //     for(i in connectedUserAndAdmin){
+    //         if(connectedUserAndAdmin[i].agentConnected.name == agent){
+    //             connectedUserAndAdmin.splice(i,1);
+    //         }
+    //     }
+    // })
 
     socket.on('private-message', (data) => {
-
         privateDetails = JSON.parse(data);
-        //   var docx = sentiment.analyze(privateDetails.msg).score;
-        // console.log(docx)
-        // if (docx < 0) {
-        //     emotion = 'Negative'
-        // }
-        // else if (docx = 0) {
-        //     emotion = 'Neutral'
-        // }
-        // else {
-        //     emotion = 'Positive'
-        // }
-        // console.log(emotion)
-     
         db.collection('ChatMessages').insertOne(privateDetails);
         if (privateDetails.receiverName == 'Agent') {
             if (privateDetails.msg in brain) {
                 botMessage = { senderName: privateDetails.receiverName, receiverName: privateDetails.senderName, msg: brain[privateDetails.msg] }
                 if (privateDetails.msg == 'connect to admin') {
                     if (freeAgents.length > 0) {
+                        console.log("here",freeAgents)
                         connectedUserAndAdmin.push({ name: privateDetails.senderName, agentConnected: { name: freeAgents[0].name, id: freeAgents[0].id } });
                         io.sockets.in(freeAgents[0].name).emit('connect-to-admin', JSON.stringify({ name: privateDetails.senderName, agentConnected: { name: freeAgents[0].name, id: freeAgents[0].id } }));
                         io.sockets.in(privateDetails.senderName).emit('real-admin-connecting', JSON.stringify({ name: privateDetails.senderName, agentConnected: { name: freeAgents[0].name, id: freeAgents[0].id } }));
