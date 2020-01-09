@@ -2,6 +2,7 @@
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.3.19.
 
+
 ## Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
@@ -35,6 +36,20 @@ Run the Following queries :-
 
 1.) use local
 
-2.) db.users.insertOne({"name":"user1", "role":"employee"}) // Add users with role 'employee' 
+2.) db.users.insertOne({"name":"user1", "role":"employee"}) // Add users with role 'employee' \\ Create these default users with unique name.
 
-3.) db.users.insertOne({"agent1":"user1", "role":"admin"}) // Add agents with role 'admin'
+3.) db.users.insertOne({"agent1":"user1", "role":"agents"}) // Add agents with role 'admin' \\ Create default agents with unique name.
+
+#To Run Application
+
+  1. Open the project folder in VsCode or IntelliJ.
+  
+  2. Open the Terminal and run `npm install` command.
+  
+  3. Navigate to server folder by `cd server` in the porject folder.
+  
+  4. Execute the command `node index.js` to run the server file index.js at 'http://localhost:3001'.
+  
+  5. Open another terminal for same project folder and  execute the command `npm start` to run the client side application at         'http://localhost:4200'.
+  
+  6.Now login with username of the  employees and agents to use chat-application.
