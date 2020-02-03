@@ -9,6 +9,7 @@ import { PrivateChatComponent } from './private-chat/private-chat.component';
 import { RouterModule } from '@angular/router';
 import { LoginComponentComponent } from './login-component/login-component.component';
 import { RegistrationComponent } from './registration/registration.component';
+import { AdminComponentComponent } from './admin-component/admin-component.component';
 
 
 
@@ -20,6 +21,7 @@ import { RegistrationComponent } from './registration/registration.component';
     PrivateChatComponent,
     LoginComponentComponent,
     RegistrationComponent,
+    AdminComponentComponent,
 
 
   

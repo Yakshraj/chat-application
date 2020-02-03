@@ -17,6 +17,11 @@
     </div>
 </ng-template>
 <ng-template #successTemplate>
-    <app-client-component></app-client-component>
+    <div *ngIf= "adminLogin">
+    <app-admin-component></app-admin-component>
+    </div>
+    <div *ngIf= "userLogin">
+        <app-client-component></app-client-component>
+    </div>
 </ng-template>
 

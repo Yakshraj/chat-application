@@ -64,8 +64,11 @@ h2{
 }
 .broadcast-messages{
     background-color: #777f7f;
-    height: 100vh;
-   }
+    height: 45vh;
+    margin: 10px;
+    opacity: 0.9;
+    border-radius: 13px;
+}
 .broadcast-messages-list{
     font-size: 20px;
     padding: 5px 5px;
@@ -73,13 +76,6 @@ h2{
 }
 hr{
     color: grey;
-}
-.icon{
-    background-color: whitesmoke;
-    border-radius: 100%;
-    font-size: 24px;
-    margin-left: 5px;
-    padding-top: 5px;
 }
 .broadcast-messages-input{
     text-align: center;
@@ -150,4 +146,15 @@ border-radius: 5px;
     font-size: 12px;
     float: right;
     padding-top: 5px;
+}
+.online{
+    border-radius: 100%;
+    background-color: green;
+    color: white;
+    padding: 4px 4px;
+    float: right;
+    margin-top: 3%;
+}
+.heading{
+    margin-top: 2%;
 }

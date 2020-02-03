@@ -1,11 +1,7 @@
 
 .private-message{
     background-color: #777f7f;
-    height: 45vh;
-    margin: 10px;
-    opacity: 0.9;
-    border-radius: 13px;
-    margin-top: 20px;
+    height: 100vh;
     
 }
 .messages{
@@ -28,6 +24,13 @@
     border-radius: 20px;
     font-weight: bold;
 }
+.icon{
+    background-color: whitesmoke;
+    border-radius: 100%;
+    font-size: 24px;
+    margin-left: 5px;
+    padding-top: 5px;
+}
 .private-message-list{
     font-size: 20px;
     padding: 10px 5px;
@@ -37,7 +40,6 @@
     font-weight: bold;
     font-size: 20px;
     text-align: center;
-    margin:10px 0;
 }
 .then-block{
     text-align: right;

@@ -1,18 +1,14 @@
-import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
-import { ChatServiceService } from '../../service/client-service/chat-service.service';
+import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
-import { timer } from 'rxjs';
-import { Template } from '@angular/compiler/src/render3/r3_ast';
+import { ChatServiceService } from 'src/app/service/client-service/chat-service.service';
 var constant = require('src/app/constant/constant.json');
 
 @Component({
-  selector: 'app-client-component',
-  templateUrl: './client-component.component.html',
-  styleUrls: ['./client-component.component.css']
+  selector: 'app-admin-component',
+  templateUrl: './admin-component.component.html',
+  styleUrls: ['./admin-component.component.css']
 })
-export class ClientComponentComponent implements OnInit {
-
-
+export class AdminComponentComponent implements OnInit {
 
   username: any;
   searchedUser: any;
@@ -33,9 +29,8 @@ export class ClientComponentComponent implements OnInit {
   agentDetails: any;
   agentConnectionDetails:any;
   allAgents: any;
-  showBroadcast: Boolean = false;
-  showPrivate: Boolean = false;
-
+  showBroadcast: Boolean = false;;
+;
 
   constructor(private chatService: ChatServiceService) {
     this.userRole = this.chatService.userRole;
@@ -78,10 +73,15 @@ export class ClientComponentComponent implements OnInit {
     this.broadcast_form = new FormGroup({
       inputText: new FormControl()
     });
-    this.defineRole();
+    this.defineRole()
+
+
+
     this.chatService.getMessage().subscribe((message: any) => {
       this.messages.push(JSON.parse(message));
     });
+
+
 
     this.chatService.getPrivateMessage().subscribe(data => {
       let message = JSON.parse(data);
@@ -91,11 +91,13 @@ export class ClientComponentComponent implements OnInit {
         }
       }
     });
+
+
   }
 
-  // show(){
-  //   this.isShow = !this.isShow;
-  // }
+  show(){
+    this.isShow = !this.isShow;
+  }
 
   defineRole() {
     if (this.userRole == 'admin') {
@@ -114,9 +116,9 @@ export class ClientComponentComponent implements OnInit {
     });
   }
 
-  // checkFunction(checked, name) {
-  //   this.chatService.checkBoxValue(checked, name);
-  // }
+  checkFunction(checked, name) {
+    this.chatService.checkBoxValue(checked, name);
+  }
 
   sendMessage() {
     this.chatService.sendMessage(this.message, this.username);
@@ -125,13 +127,17 @@ export class ClientComponentComponent implements OnInit {
   gotoPrivateChatAgent(name){
     let userDetails = {name:name}
     this.chatService.setDetail(userDetails);
-    this.showBroadcast = false;
   }
-
   gotoPrivateChat(userDetails, index) {
+    this.temp = 1;
     this.activeClients[index].count = 0;
     this.chatService.setDetails(userDetails);
-    this.showBroadcast = false;
+  }
+
+  gotoPrivateChatAdmin(userDetails, index) {
+    this.temp = 1;
+    this.activeClients[index].count = 0;
+    this.chatService.setDetail(userDetails);
   }
 
   spliceSelfname() {
@@ -219,7 +225,5 @@ export class ClientComponentComponent implements OnInit {
     this.agentConnected = false;
     this.chatService.addFreeAgent(this.username);
   }
-  showBroadcastFunc() {
-    this.showBroadcast = !this.showBroadcast;
-  }
+
 }
