@@ -12,7 +12,7 @@
             [class.active-clients-user]="searchedUser?.name">{{searchedUser?.name | titlecase}}</div>
         <div class="search-result-error">{{errorMessage}}</div> -->
 
-            <button (click)="showBroadcast=!showBroadcast">show</button>
+            <button (click) = "showBroadcastFunc()" class="active-clients-user ">Broadcast</button>
             <h2 (click)="show()">All Users</h2>
             <div *ngIf="isShow">
                 <div class="active-clients-div" *ngFor="let client of activeClients; let i=index">
@@ -37,28 +37,36 @@
     </div>
     
     <div class="messages-component">
-        <div class="broadcast-messages" *ngIf= "showBroadcast">
-            <div class="broadcast-messages-sender-Div-caption"><b>Broadcast</b></div>
-            <div class="broadcast-messages-sender-Div" #scrollMe [scrollTop]="scrollMe.scrollHeight">
-
-                <div *ngFor="let message of messages" class="broadcast-messages-list">
-                    <div *ngIf=" message.name == username; then thenBlock else elseBlock"></div>
-                    <ng-template #thenBlock>
-                        <div class="then-block"> <b>Me : </b>{{message.msg}}</div>
-                    </ng-template>
-                    <ng-template #elseBlock>
-                        <div class="else-block"> <b> {{message.name | titlecase}} : </b>{{message.msg}}</div>
-                    </ng-template>
+        <div *ngIf = "showBroadcast ; then id "></div>
+        <div *ngIf = "showPrivate ; then private "></div>
+        <ng-template #id>
+            <div class="broadcast-messages">
+                <div class="broadcast-messages-sender-Div-caption"><b>Broadcast</b></div>
+                <div class="broadcast-messages-sender-Div" #scrollMe [scrollTop]="scrollMe.scrollHeight">
+    
+                    <div *ngFor="let message of messages" class="broadcast-messages-list">
+                        <div *ngIf=" message.name == username; then thenBlock else elseBlock"></div>
+                        <ng-template #thenBlock>
+                            <div class="then-block"> <b>Me : </b>{{message.msg}}</div>
+                        </ng-template>
+                        <ng-template #elseBlock>
+                            <div class="else-block"> <b> {{message.name | titlecase}} : </b>{{message.msg}}</div>
+                        </ng-template>
+                    </div>
+                </div>
+                <div class="broadcast-messages-sender">
+                    <form *ngIf="userRole != 'agent' " [formGroup]="broadcast_form" (ngSubmit)="sendMessage()"
+                        ngNativeValidate class="broadcast-messages-sender-form">
+                        <input class="broadcast-messages-input" [(ngModel)]="message" required
+                            formControlName="inputText" />
+                        <button class="broadcast-messages-button">Send</button>
+                        <i class="fa fa-paperclip icon"></i>
+                    </form>
                 </div>
             </div>
-            <div class="broadcast-messages-sender">
-                <form *ngIf="userRole != 'agent' " [formGroup]="broadcast_form" (ngSubmit)="sendMessage()"
-                    ngNativeValidate class="broadcast-messages-sender-form">
-                    <input class="broadcast-messages-input" [(ngModel)]="message" required
-                        formControlName="inputText" />
-                    <button class="broadcast-messages-button">Send</button>
-                </form>
-            </div>
-        </div>
+      </ng-template>  
+      <ng-template #private>
+        <app-private-chat></app-private-chat>
+     </ng-template>   
     </div>
 </div>

@@ -29,8 +29,8 @@ export class AdminComponentComponent implements OnInit {
   agentDetails: any;
   agentConnectionDetails:any;
   allAgents: any;
-  showBroadcast: Boolean = false;;
-;
+  showBroadcast: Boolean = false;
+  showPrivate : Boolean = true;
 
   constructor(private chatService: ChatServiceService) {
     this.userRole = this.chatService.userRole;
@@ -124,20 +124,13 @@ export class AdminComponentComponent implements OnInit {
     this.chatService.sendMessage(this.message, this.username);
     this.message = '';
   }
-  gotoPrivateChatAgent(name){
-    let userDetails = {name:name}
-    this.chatService.setDetail(userDetails);
-  }
-  gotoPrivateChat(userDetails, index) {
-    this.temp = 1;
-    this.activeClients[index].count = 0;
-    this.chatService.setDetails(userDetails);
-  }
 
   gotoPrivateChatAdmin(userDetails, index) {
     this.temp = 1;
     this.activeClients[index].count = 0;
     this.chatService.setDetail(userDetails);
+    this.showBroadcast = false;
+    this.showPrivate = true;
   }
 
   spliceSelfname() {
@@ -224,6 +217,11 @@ export class AdminComponentComponent implements OnInit {
   disconnectUser(){
     this.agentConnected = false;
     this.chatService.addFreeAgent(this.username);
+  }
+
+  showBroadcastFunc() {
+    this.showBroadcast = !this.showBroadcast;
+    this.showPrivate = false;
   }
 
 }

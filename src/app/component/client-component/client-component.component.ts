@@ -34,7 +34,7 @@ export class ClientComponentComponent implements OnInit {
   agentConnectionDetails:any;
   allAgents: any;
   showBroadcast: Boolean = false;
-  showPrivate: Boolean = false;
+  showPrivate: Boolean = true;
 
 
   constructor(private chatService: ChatServiceService) {
@@ -126,12 +126,14 @@ export class ClientComponentComponent implements OnInit {
     let userDetails = {name:name}
     this.chatService.setDetail(userDetails);
     this.showBroadcast = false;
+    this.showPrivate = true;
   }
 
   gotoPrivateChat(userDetails, index) {
     this.activeClients[index].count = 0;
     this.chatService.setDetails(userDetails);
     this.showBroadcast = false;
+    this.showPrivate = true;
   }
 
   spliceSelfname() {
@@ -221,5 +223,6 @@ export class ClientComponentComponent implements OnInit {
   }
   showBroadcastFunc() {
     this.showBroadcast = !this.showBroadcast;
+    this.showPrivate = false;
   }
 }

@@ -35,6 +35,7 @@
     
     <div class="messages-component">
         <div *ngIf = "showBroadcast ; then id "></div>
+        <div *ngIf = "showPrivate ; then private "></div>
         <ng-template #id>
             <div class="broadcast-messages">
                 <div class="broadcast-messages-sender-Div-caption"><b>Broadcast</b></div>
@@ -61,8 +62,8 @@
                 </div>
             </div>
       </ng-template>   
-      <div>
+      <ng-template #private>
          <app-private-chat></app-private-chat>
-      </div>   
+      </ng-template>   
     </div>
 </div>
