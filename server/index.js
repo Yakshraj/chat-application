@@ -11,9 +11,9 @@ let server = http.Server(app);
 let socketIO = require('socket.io')
 let io = socketIO(server);
 
-let allAgents=[];
+//let allAgents=[];
 let activeClient = [];
-let allEmployees = [];
+//let allEmployees = [];
 
 let activeAgents = [];
 let freeAgents = [];
@@ -22,8 +22,6 @@ let privateDetails;
 let connectedUserAndAdmin = [];
 var db;
 const port = process.env.PORT || 3001;
-var Sentiment = require('sentiment');
-var sentiment = new Sentiment();
 
 server.listen(port, () => {
     console.log('started on port ' + port);
@@ -83,6 +81,33 @@ io.on('connection', (socket) => {
 
     });
 
+    // socket.on('check-user',(checkUser) => {
+    //     let user = JSON.parse(checkUser);
+    //     db.collection('users').findOne({name: user.name}, function(error, result) {
+    //         if(result == null) {
+    //             io.sockets.in(socket.id).emit('failure');
+    //         }
+    //         else if(result.name == user.name && result.loggedIn == "false") {
+    //             db.collection('users').updateOne({name : result.name}, {$set : {socketId : socket.id} });
+    //             if(result.role == "admin") {
+    //                 db.collection('users').updateOne({name:result.name},{$set : {loggedIn : "true"}});
+    //                 io.sockets.in(socket.id).emit('admin-success');
+    //             }
+    //             else if(result.role == "agent") {
+    //                 db.collection('users').updateOne({name:result.name},{$set : {loggedIn : "true"}});
+    //                 io.sockets.in(socket.id).emit('agent-success')
+    //             }
+    //             else {
+    //                 db.collection('users').updateOne({name:result.name},{$set : {loggedIn : "true"}});
+    //                 io.sockets.in(socket.id).emit('user-success');
+    //             }
+    //         }
+    //         else {
+    //             io.sockets.in(socket.id).emit('duplicate');
+    //         }
+    //     });
+    // });
+
     socket.on('new-user', (name) => {
         db.collection('users').findOne({ name: name }, function (error, result) {
             if (result == null) {
@@ -97,8 +122,8 @@ io.on('connection', (socket) => {
 
     socket.on('get-all-users', () => {
         db.collection('users').find({ role: "employee" }, { _id: 0, name: 0 }).toArray(function (error, result) {
-            allEmployees = result;
-            io.sockets.in(socket.id).emit('received-all-users', JSON.stringify(allEmployees));
+          //  allEmployees = result;
+            io.sockets.in(socket.id).emit('received-all-users', JSON.stringify(result));
         });
     });
 
@@ -146,41 +171,17 @@ io.on('connection', (socket) => {
         io.emit('get-clients', JSON.stringify(activeClient));
     });
 
+    // socket.on('disconnect', () => {
+    //     socket.disconnect(socket.id);
+    //     db.collection('users').updateOne({socketId : socket.id}, {$set : {loggedIn : "false", socketId : ''}});
+    // });
+
     socket.on('all-agents',()=> {
         db.collection('users').find({role:"agent"}).toArray(function(error,result){
-                allAgents = result;
-                // for(let i=0;i<activeAgents.length;i++){
-                //     for(let j=0;j<allAgents.length;j++){
-                //         if(activeAgents[i].name == allAgents[j].name){
-                //             allAgents[j].LoggedIn = true;
-                //         }
-                //         else{
-                //             allAgents[j].LoggedIn = false;
-                //         }
-                //     }
-                // }
-                // for(i in freeAgents){
-                //     for(j in allAgents){
-                //         if(freeAgents[i].name == allAgents[j].name){
-                //             allAgents[j].status = "free";
-                //         } 
-                //         else{
-                //             allAgents[j].status = "busy";
-                //         }
-                //     }
-                // }
-                io.emit('get-all-agents',JSON.stringify(allAgents))
-                console.log(allAgents)
+               // allAgents = result;
+                io.emit('get-all-agents',JSON.stringify(result));
         });
     });
-    // socket.on('add-free-agent',agent => {
-    //     freeAgents.push({name:agent,role:'agent'});
-    //     for(i in connectedUserAndAdmin){
-    //         if(connectedUserAndAdmin[i].agentConnected.name == agent){
-    //             connectedUserAndAdmin.splice(i,1);
-    //         }
-    //     }
-    // })
 
     socket.on('private-message', (data) => {
         privateDetails = JSON.parse(data);
