@@ -17,6 +17,7 @@ let activeClient = [];
 
 let activeAgents = [];
 let freeAgents = [];
+
 let privateDetails;
 
 let connectedUserAndAdmin = [];
@@ -88,17 +89,15 @@ io.on('connection', (socket) => {
     //             io.sockets.in(socket.id).emit('failure');
     //         }
     //         else if(result.name == user.name && result.loggedIn == "false") {
-    //             db.collection('users').updateOne({name : result.name}, {$set : {socketId : socket.id} });
-    //             if(result.role == "admin") {
-    //                 db.collection('users').updateOne({name:result.name},{$set : {loggedIn : "true"}});
+    //             db.collection('users').updateOne({name : result.name}, {$set : {loggedIn : "true", socketId : socket.id} });
+    //             if(result.role == "admin") {                    
     //                 io.sockets.in(socket.id).emit('admin-success');
     //             }
     //             else if(result.role == "agent") {
-    //                 db.collection('users').updateOne({name:result.name},{$set : {loggedIn : "true"}});
     //                 io.sockets.in(socket.id).emit('agent-success')
     //             }
     //             else {
-    //                 db.collection('users').updateOne({name:result.name},{$set : {loggedIn : "true"}});
+    //                 activeClient.push({ name : result.name, id : result.socketId});
     //                 io.sockets.in(socket.id).emit('user-success');
     //             }
     //         }
@@ -122,7 +121,6 @@ io.on('connection', (socket) => {
 
     socket.on('get-all-users', () => {
         db.collection('users').find({ role: "employee" }, { _id: 0, name: 0 }).toArray(function (error, result) {
-          //  allEmployees = result;
             io.sockets.in(socket.id).emit('received-all-users', JSON.stringify(result));
         });
     });
@@ -179,6 +177,7 @@ io.on('connection', (socket) => {
     socket.on('all-agents',()=> {
         db.collection('users').find({role:"agent"}).toArray(function(error,result){
                // allAgents = result;
+               console.log(result)
                 io.emit('get-all-agents',JSON.stringify(result));
         });
     });

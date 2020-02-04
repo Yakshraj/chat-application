@@ -78,7 +78,7 @@ export class ClientComponentComponent implements OnInit {
     this.broadcast_form = new FormGroup({
       inputText: new FormControl()
     });
-    this.defineRole();
+    this.getActiveUsers();
     this.chatService.getMessage().subscribe((message: any) => {
       this.messages.push(JSON.parse(message));
     });
@@ -93,18 +93,14 @@ export class ClientComponentComponent implements OnInit {
     });
   }
 
-  // show(){
-  //   this.isShow = !this.isShow;
+  // defineRole() {
+  //   if (this.userRole == 'admin') {
+  //     this.getAllUsers()
+  //   }
+  //   else {
+  //     this.getActiveUsers()
+  //   }
   // }
-
-  defineRole() {
-    if (this.userRole == 'admin') {
-      this.getAllUsers()
-    }
-    else {
-      this.getActiveUsers()
-    }
-  }
 
   getAllAgents(){
     this.isShowAgent = !this.isShowAgent;
@@ -113,10 +109,6 @@ export class ClientComponentComponent implements OnInit {
         console.log(this.allAgents)
     });
   }
-
-  // checkFunction(checked, name) {
-  //   this.chatService.checkBoxValue(checked, name);
-  // }
 
   sendMessage() {
     this.chatService.sendMessage(this.message, this.username);
@@ -217,8 +209,9 @@ export class ClientComponentComponent implements OnInit {
     }
   }
 
-  disconnectUser(){
+  disconnectUser() {
     this.agentConnected = false;
+    this.showPrivate = false;
     this.chatService.addFreeAgent(this.username);
   }
   showBroadcastFunc() {

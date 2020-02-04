@@ -214,11 +214,6 @@ export class AdminComponentComponent implements OnInit {
     }
   }
 
-  disconnectUser(){
-    this.agentConnected = false;
-    this.chatService.addFreeAgent(this.username);
-  }
-
   showBroadcastFunc() {
     this.showBroadcast = !this.showBroadcast;
     this.showPrivate = false;

@@ -16,11 +16,11 @@ export class ChatServiceService {
   allEmployees = [];
   checkClient = [];
   userRole: string;
+  fetchdetails: any;
 
   checkValue = new Subject();
   checkCurrentValue = this.checkValue.asObservable();
-  fetchdetails: any;
-
+  
   private messageNotification = new Subject();
   currentNotification = this.messageNotification.asObservable();
 
@@ -39,7 +39,6 @@ export class ChatServiceService {
     console.log(details);
     this.fetchdetails = {senderName: this.username, receiverName: details.name }
     this.fetchChatHistory();
-    
     this.messageSource.next(details);
   }
 
@@ -97,8 +96,6 @@ export class ChatServiceService {
       })
     });
   }
-
-
 
   joinUser(username) {
     this.socket.emit('join', username);
