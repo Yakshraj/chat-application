@@ -36,22 +36,6 @@ export class AdminComponentComponent implements OnInit {
     this.userRole = this.chatService.userRole;
     this.username = this.chatService.username;
 
-    this.chatService.connectToadmin().subscribe(data => {
-      this.agentConnected = true;
-      this.agentConnectionDetails = JSON.parse(data);
-      console.log(this.agentConnectionDetails)
-     alert(this.agentConnectionDetails.name + " Wants To Connect You");
-      
-    })
-
-    this.chatService.realAgentConnecting().subscribe(admin => {
-      this.agentDetails = JSON.parse(admin)
-      console.log(this.agentDetails);
-        this.activeClients.splice(0,1);
-        this.activeClients.push({name:this.agentDetails.agentConnected.name,id:this.agentDetails.agentConnected.id,count:0});
-        this.chatService.setDetails({name:this.agentDetails.agentConnected.name,id:this.agentDetails.agentConnected.id});
-    })
-
     if (this.userRole == 'employee') {
       this.activeClients.push({ name: "Agent", id: "agentId", count: 0 })
     }
@@ -69,14 +53,10 @@ export class AdminComponentComponent implements OnInit {
   }
 
   ngOnInit() {
-
     this.broadcast_form = new FormGroup({
       inputText: new FormControl()
     });
     this.defineRole()
-
-
-
     this.chatService.getMessage().subscribe((message: any) => {
       this.messages.push(JSON.parse(message));
     });
@@ -101,10 +81,10 @@ export class AdminComponentComponent implements OnInit {
 
   defineRole() {
     if (this.userRole == 'admin') {
-      this.getAllUsers()
+      this.getAllUsers();
     }
     else {
-      this.getActiveUsers()
+      this.getActiveUsers();
     }
   }
 
@@ -114,10 +94,6 @@ export class AdminComponentComponent implements OnInit {
         this.allAgents = JSON.parse(data);
         console.log(this.allAgents)
     });
-  }
-
-  checkFunction(checked, name) {
-    this.chatService.checkBoxValue(checked, name);
   }
 
   sendMessage() {

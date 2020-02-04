@@ -34,90 +34,43 @@ io.on('connection', (socket) => {
         db = client.db('local');
     })
 
-    socket.on('check-user', (checkUser) => {
-        let checkingUser = JSON.parse(checkUser)
-        let flag = false;
-        // For Users
-        for (i = 0; i < activeClient.length; i++) {
-            if (activeClient[i].name == checkingUser.name) {
-                io.sockets.in(socket.id).emit('duplicate')
-                flag = true
-                break;
+    socket.on('check-user',(checkUser) => {
+        let user = JSON.parse(checkUser);
+        db.collection('users').findOne({name: user.name}, function(error, result) {
+            if(result == null) {
+                io.sockets.in(socket.id).emit('failure');
             }
-        }
-        // For Agents
-        if (flag == false) {
-            for (i = 0; i < activeAgents.length; i++) {
-                if (activeAgents[i].name == checkingUser.name) {
-                    io.sockets.in(socket.id).emit('duplicate')
-                    flag = true
-                    break;
+            else if(result.name == user.name && result.loggedIn == "false") {
+                db.collection('users').updateOne({name : result.name}, {$set : {loggedIn : "true", socketId : socket.id} });
+                if(result.role == "admin") {                    
+                    io.sockets.in(socket.id).emit('admin-success');
+                }
+                else if(result.role == "agent") {
+                    freeAgents.push({ name: result.name, id: socket.id })
+                    io.sockets.in(socket.id).emit('agent-success')
+                }
+                else {
+                    activeClient.push({ name : result.name, id : socket.id});
+                    io.sockets.in(socket.id).emit('user-success');
                 }
             }
-        }
-
-        if (flag == false) {
-            db.collection('users').findOne({ name: checkingUser.name }, function (findErr, result) {
-                if (result == null) {
-                    io.sockets.in(socket.id).emit('failure');
-                }
-                else if (result.name == checkingUser.name) {
-                    if (result.role == "admin") {
-                       
-                        io.sockets.in(socket.id).emit('admin-success');
-                    }
-                    else if(result.role == "employee"){
-                        activeClient.push({ name: checkingUser.name, id: socket.id });
-                        io.sockets.in(socket.id).emit('user-success');
-                    }
-                    else{
-                        freeAgents.push({ name: checkingUser.name, id: socket.id })
-                        activeAgents.push({ name: checkingUser.name, id: socket.id })
-                        io.sockets.in(socket.id).emit('agent-success');
-                        console.log("agent connected",freeAgents)
-                    }
-                }
-            });
-        }
-
-    });
-
-    // socket.on('check-user',(checkUser) => {
-    //     let user = JSON.parse(checkUser);
-    //     db.collection('users').findOne({name: user.name}, function(error, result) {
-    //         if(result == null) {
-    //             io.sockets.in(socket.id).emit('failure');
-    //         }
-    //         else if(result.name == user.name && result.loggedIn == "false") {
-    //             db.collection('users').updateOne({name : result.name}, {$set : {loggedIn : "true", socketId : socket.id} });
-    //             if(result.role == "admin") {                    
-    //                 io.sockets.in(socket.id).emit('admin-success');
-    //             }
-    //             else if(result.role == "agent") {
-    //                 io.sockets.in(socket.id).emit('agent-success')
-    //             }
-    //             else {
-    //                 activeClient.push({ name : result.name, id : result.socketId});
-    //                 io.sockets.in(socket.id).emit('user-success');
-    //             }
-    //         }
-    //         else {
-    //             io.sockets.in(socket.id).emit('duplicate');
-    //         }
-    //     });
-    // });
-
-    socket.on('new-user', (name) => {
-        db.collection('users').findOne({ name: name }, function (error, result) {
-            if (result == null) {
-                db.collection('users').insertOne({ name: name, role: "employee" });
-                activeClient.push({ name: name, id: socket.id });
-                io.sockets.in(socket.id).emit('add-new-user');
-            } else {
-                io.sockets.in(socket.id).emit('user-exist');
+            else {
+                io.sockets.in(socket.id).emit('duplicate');
             }
         });
     });
+
+    // socket.on('new-user', (name) => {
+    //     db.collection('users').findOne({ name: name }, function (error, result) {
+    //         if (result == null) {
+    //             db.collection('users').insertOne({ name: name, role: "employee" });
+    //             activeClient.push({ name: name, id: socket.id });
+    //             io.sockets.in(socket.id).emit('add-new-user');
+    //         } else {
+    //             io.sockets.in(socket.id).emit('user-exist');
+    //         }
+    //     });
+    // });
 
     socket.on('get-all-users', () => {
         db.collection('users').find({ role: "employee" }, { _id: 0, name: 0 }).toArray(function (error, result) {
@@ -139,25 +92,19 @@ io.on('connection', (socket) => {
         io.emit('chat-message', message);
     });
 
-    socket.on('disconnect', (index) => {
+    socket.on('disconnect', (indx) => {
         socket.disconnect(socket.id);
+        db.collection('users').updateOne({socketId : socket.id}, {$set : {loggedIn : "false", socketId : ''}});
         for (i = 0; i < activeClient.length; i++) {
             if (activeClient[i].id == socket.id) {
                 this.temp = activeClient[i].name
                 activeClient.splice(i, 1);
             }
         }
-        for (i = 0; i < activeAgents.length; i++) {
-            if (activeAgents[i].id == socket.id) {
-                this.temp = activeAgents[i].name
-                activeAgents.splice(i, 1);
-            }
-        }
         for(i=0; i<freeAgents.length;i++){
             if(freeAgents[i].id == socket.id){
                 this.temp = freeAgents[i].name;
                 freeAgents.splice(i,1);
-                console.log("agent disconnected",freeAgents)
             }
         }
         for(let i in connectedUserAndAdmin){
@@ -169,15 +116,8 @@ io.on('connection', (socket) => {
         io.emit('get-clients', JSON.stringify(activeClient));
     });
 
-    // socket.on('disconnect', () => {
-    //     socket.disconnect(socket.id);
-    //     db.collection('users').updateOne({socketId : socket.id}, {$set : {loggedIn : "false", socketId : ''}});
-    // });
-
     socket.on('all-agents',()=> {
         db.collection('users').find({role:"agent"}).toArray(function(error,result){
-               // allAgents = result;
-               console.log(result)
                 io.emit('get-all-agents',JSON.stringify(result));
         });
     });

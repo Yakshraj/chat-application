@@ -21,8 +21,6 @@ export class ClientComponentComponent implements OnInit {
   messages = [];
   activeClients = [];
   socketId: any;
-  temp = 0;
-  newActiveClients = [];
   public broadcast_form: FormGroup;
   dataArray = [];
   userRole: any;
@@ -67,7 +65,7 @@ export class ClientComponentComponent implements OnInit {
       for (let i = 0; i < this.activeClients.length; i++) {
         if (this.activeClients[i].name == data) {
           this.activeClients.splice(i, 1);
-          this.getAllUsers();
+          this.getActiveUsers();
         }
       }
     })
@@ -102,7 +100,7 @@ export class ClientComponentComponent implements OnInit {
   //   }
   // }
 
-  getAllAgents(){
+  getAllAgents() {
     this.isShowAgent = !this.isShowAgent;
     this.chatService.getAllAgents().subscribe((data)=> {
         this.allAgents = JSON.parse(data);
@@ -135,13 +133,13 @@ export class ClientComponentComponent implements OnInit {
       }
     }
   }
-  getAllUsers() {
-    this.chatService.getAllUsers((data) => {
-      this.allEmployees = JSON.parse(data);
-      console.log(this.allEmployees)
-      this.getActiveUsers()
-    })
-  }
+  // getAllUsers() {
+  //   this.chatService.getAllUsers((data) => {
+  //     this.allEmployees = JSON.parse(data);
+  //     console.log(this.allEmployees)
+  //     this.getActiveUsers()
+  //   })
+  // }
 
   getActiveUsers() {
     this.chatService.getActiveClients().subscribe(data => {
