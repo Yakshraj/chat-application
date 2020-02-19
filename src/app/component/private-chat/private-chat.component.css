@@ -50,3 +50,6 @@
     flex-wrap: nowrap;
     justify-content: center;
 }
+.file-uploader {
+    padding: 10px;
+}

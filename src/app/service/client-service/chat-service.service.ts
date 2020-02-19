@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as io from 'socket.io-client';
-import { Observable, Subject } from 'rxjs'
+import { Observable, Subject, observable } from 'rxjs'
 
 @Injectable({
   providedIn: 'root'
@@ -17,6 +17,7 @@ export class ChatServiceService {
   checkClient = [];
   userRole: string;
   fetchdetails: any;
+  receiverName: any;
 
   checkValue = new Subject();
   checkCurrentValue = this.checkValue.asObservable();
@@ -228,7 +229,36 @@ export class ChatServiceService {
   }
 
   public addFreeAgent(agent){
-    
     this.socket.emit('add-free-agent',agent);
+  }
+
+  public sendFile(file, receiverName) {
+    this.receiverName = receiverName;
+    let data = file ;
+    this.readThenSendFile(data);
+    
+  }
+  readThenSendFile(data) {
+    var username = this.username;
+    var msg = <any>{};
+    var reader = new FileReader();
+    reader.onload = (evt) => {
+      console.log(evt);
+      msg.senderName = username;
+      msg.receiverName = this.receiverName;
+      msg.file = evt.target.result;
+      msg.fileName = data.name;
+      this.socket.emit('base64-string', msg);
+    };
+    reader.readAsDataURL(data);
+  }
+
+  public receiveFile() {
+    return Observable.create(observer => {
+      this.socket.on('base64-file', file => {
+        observer.next(file);
+        console.log(file)
+      });
+    });
   }
 }

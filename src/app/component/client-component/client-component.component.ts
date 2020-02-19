@@ -89,17 +89,10 @@ export class ClientComponentComponent implements OnInit {
         }
       }
     });
+
   }
 
-  // defineRole() {
-  //   if (this.userRole == 'admin') {
-  //     this.getAllUsers()
-  //   }
-  //   else {
-  //     this.getActiveUsers()
-  //   }
-  // }
-
+ 
   getAllAgents() {
     this.isShowAgent = !this.isShowAgent;
     this.chatService.getAllAgents().subscribe((data)=> {

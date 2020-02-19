@@ -11,11 +11,7 @@ let server = http.Server(app);
 let socketIO = require('socket.io')
 let io = socketIO(server);
 
-//let allAgents=[];
 let activeClient = [];
-//let allEmployees = [];
-
-let activeAgents = [];
 let freeAgents = [];
 
 let privateDetails;
@@ -131,17 +127,16 @@ io.on('connection', (socket) => {
                 if (privateDetails.msg == 'connect to admin') {
                     if (freeAgents.length > 0) {
                         console.log("here",freeAgents)
-                        connectedUserAndAdmin.push({ name: privateDetails.senderName, agentConnected: { name: freeAgents[0].name, id: freeAgents[0].id } });
-                        io.sockets.in(freeAgents[0].name).emit('connect-to-admin', JSON.stringify({ name: privateDetails.senderName, agentConnected: { name: freeAgents[0].name, id: freeAgents[0].id } }));
-                        io.sockets.in(privateDetails.senderName).emit('real-admin-connecting', JSON.stringify({ name: privateDetails.senderName, agentConnected: { name: freeAgents[0].name, id: freeAgents[0].id } }));
+                        let connectionDetail = { name: privateDetails.senderName, agentConnected: { name: freeAgents[0].name, id: freeAgents[0].id } } ;
+                        connectedUserAndAdmin.push(connectionDetail);
+                        io.sockets.in(freeAgents[0].name).emit('connect-to-admin', JSON.stringify(connectionDetail));
+                        io.sockets.in(privateDetails.senderName).emit('real-admin-connecting', JSON.stringify(connectionDetail));
                         freeAgents.splice(0, 1);
                     }
                     else{
-                        botMessage = { senderName: privateDetails.receiverName, receiverName: privateDetails.senderName, msg: brain["agent_busy"] }
-
+                        botMessage = { senderName: privateDetails.receiverName, receiverName: privateDetails.senderName, msg: brain["agent_busy"] } ;
                     }
                 }
-
             }
             else {
                 botMessage = { senderName: privateDetails.receiverName, receiverName: privateDetails.senderName, msg: brain["out_of_brain"] }
@@ -173,6 +168,25 @@ io.on('connection', (socket) => {
                     let chatHistory = result;
                     io.sockets.in(socket.id).emit('fetch-chat-history', JSON.stringify(chatHistory));
                 });
+    });
+
+    socket.on('base64-string', msg => {
+        console.log(msg,'msg');
+        io.sockets.in(msg.receiverName).emit('base64-file',msg);
     })
+
+    // socket.on('add-free-agent', (agent) => {
+    //     console.log("here", agent);
+    //     db.collection('users').find({name: agent}).toArray(function(error, result) {
+    //         freeAgents.push({name:agent, id : result.socketId});
+    //     });
+    //     for(let i=0; i<connectedUserAndAdmin.length; i++) {
+    //         if(connectedUserAndAdmin[i].agentConnected.name == agent) {
+    //             io.sockets.in(connectedUserAndAdmin[i].agentConnected.name).emit('remove-real-agent', agent);
+    //             connectedUserAndAdmin.splice(i,1);
+    //         }
+    //     }
+       
+    // });
 });
 
